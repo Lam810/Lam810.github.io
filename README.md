@@ -1,3 +1,3 @@
 # 我的个人主页
-## 没有想说的
-滚，别烦我
+## HONG KONG University of Science and Technology
+加油吧，39感冒灵
