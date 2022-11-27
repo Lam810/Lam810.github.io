@@ -1,0 +1,3 @@
+.SvgIcon{height:24px;width:24px}.Svg.size-tiny,.SvgIcon.size-tiny{height:12px;width:12px}.Svg.size-small,.SvgIcon.size-small{height:18px;width:18px}.Svg.size-medium,.SvgIcon.size-medium{height:24px;width:24px}.Svg.size-large,.SvgIcon.size-large{height:36px;width:36px}.Svg.spinner,.SvgIcon.spinner{animation:spin 1.25s linear infinite}
+.Svg svg{width:inherit;height:inherit}
+.StickyContainer.container--isSticky{position:fixed;z-index:999;top:0}.StickyContainer.container--fullWidth{left:0;right:0}
