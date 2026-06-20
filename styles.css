@@ -137,6 +137,11 @@ li {
   font-weight: 700;
 }
 
+.secondary-title {
+  color: #444;
+  font-weight: 400;
+}
+
 .pub-authors,
 .pub-venue {
   margin-top: 2px;
