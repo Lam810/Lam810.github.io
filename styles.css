@@ -117,6 +117,11 @@ li {
   margin-bottom: 9px;
 }
 
+.pub-note {
+  color: #555;
+  font-size: 14px;
+}
+
 .publications li {
   margin-bottom: 18px;
 }
