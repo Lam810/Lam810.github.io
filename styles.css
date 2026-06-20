@@ -118,7 +118,48 @@ li {
 }
 
 .publications li {
-  margin-bottom: 13px;
+  margin-bottom: 18px;
+}
+
+.pub-title {
+  font-weight: 700;
+}
+
+.pub-authors,
+.pub-venue {
+  margin-top: 2px;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid #bbb;
+  color: #555;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.pub-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.pub-button {
+  display: inline-block;
+  min-width: 42px;
+  padding: 2px 8px;
+  border: 1px solid #bbb;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.pub-button.disabled {
+  cursor: default;
+  opacity: 0.65;
 }
 
 strong {
