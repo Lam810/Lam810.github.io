@@ -26,6 +26,9 @@ a:hover {
 }
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -33,6 +36,7 @@ a:hover {
   padding: 22px 0 16px;
   border-bottom: 1px solid #ddd;
   margin-bottom: 34px;
+  background: #fff;
 }
 
 .site-name {
@@ -87,6 +91,7 @@ h1 {
 
 section {
   margin: 34px 0;
+  scroll-margin-top: 120px;
 }
 
 h2 {
