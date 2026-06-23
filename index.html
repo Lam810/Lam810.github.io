@@ -36,7 +36,11 @@
   <div class="page">
     <header class="topbar">
       <a class="site-name" href="/">Zeteng Lin</a>
-      <nav aria-label="Primary navigation">
+      <button class="nav-toggle" type="button" aria-controls="primary-nav" aria-expanded="false">
+        <span>Menu</span>
+        <span class="nav-toggle-mark" aria-hidden="true"></span>
+      </button>
+      <nav id="primary-nav" aria-label="Primary navigation">
         <a href="#about">About</a>
         <a href="#experience">Experience</a>
         <a href="#publications">Publications</a>
@@ -228,5 +232,22 @@
       
     </footer>
   </div>
+  <script>
+    const navToggle = document.querySelector(".nav-toggle");
+    const primaryNav = document.querySelector("#primary-nav");
+
+    navToggle.addEventListener("click", () => {
+      const isOpen = navToggle.getAttribute("aria-expanded") === "true";
+      navToggle.setAttribute("aria-expanded", String(!isOpen));
+      primaryNav.classList.toggle("is-open", !isOpen);
+    });
+
+    primaryNav.addEventListener("click", (event) => {
+      if (event.target.tagName === "A") {
+        navToggle.setAttribute("aria-expanded", "false");
+        primaryNav.classList.remove("is-open");
+      }
+    });
+  </script>
 </body>
 </html>

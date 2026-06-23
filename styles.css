@@ -98,6 +98,10 @@ nav a:hover {
   text-decoration: none;
 }
 
+.nav-toggle {
+  display: none;
+}
+
 .profile {
   display: grid;
   grid-template-columns: 188px minmax(0, 1fr);
@@ -353,32 +357,101 @@ footer {
   }
 
   .topbar {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     margin: 0 -20px 30px;
     padding: 14px 20px 10px;
   }
 
   .site-name {
     display: inline-block;
-    margin-bottom: 10px;
+    margin-bottom: 0;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--muted);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .nav-toggle:hover {
+    border-color: #c7d4dd;
+    color: var(--accent-dark);
+    background: var(--surface-soft);
+  }
+
+  .nav-toggle-mark {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 12px;
+  }
+
+  .nav-toggle-mark::before,
+  .nav-toggle-mark::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 160ms ease, top 160ms ease;
+  }
+
+  .nav-toggle-mark::before {
+    top: 2px;
+  }
+
+  .nav-toggle-mark::after {
+    top: 8px;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-mark::before {
+    top: 5px;
+    transform: rotate(45deg);
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-mark::after {
+    top: 5px;
+    transform: rotate(-45deg);
   }
 
   nav {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 5px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    max-height: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height 180ms ease, margin-top 180ms ease, opacity 150ms ease;
   }
 
-  nav::-webkit-scrollbar {
-    display: none;
+  nav.is-open {
+    max-height: 180px;
+    margin-top: 12px;
+    padding-bottom: 4px;
+    opacity: 1;
+    visibility: visible;
   }
 
   nav a {
-    flex: 0 0 auto;
+    justify-content: center;
     min-height: 30px;
     padding: 5px 9px;
     border: 1px solid var(--line-soft);
