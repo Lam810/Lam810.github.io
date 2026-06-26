@@ -310,6 +310,15 @@ section > ul li {
   opacity: 0.65;
 }
 
+.projects {
+  padding-left: 24px;
+}
+
+.project-title {
+  color: #111827;
+  font-weight: 700;
+}
+
 strong {
   font-weight: 700;
 }
