@@ -15,7 +15,7 @@
 
 html {
   color-scheme: light;
-  font-size: 16px;
+  font-size: 15px;
   scroll-behavior: smooth;
 }
 
@@ -70,7 +70,7 @@ a:hover {
 .site-name {
   flex: 0 0 auto;
   color: var(--text);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 750;
   letter-spacing: 0;
 }
@@ -80,7 +80,7 @@ nav {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 nav a {
@@ -130,7 +130,7 @@ nav a:hover {
 h1 {
   margin: 0 0 5px;
   color: #14181f;
-  font-size: 38px;
+  font-size: 34px;
   line-height: 1.12;
   font-weight: 760;
   letter-spacing: 0;
@@ -144,7 +144,7 @@ h1 {
 }
 
 .role {
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 650;
 }
 
@@ -155,7 +155,7 @@ h1 {
 
 .bio p:not(.role):not(.affiliation) {
   max-width: 780px;
-  font-size: 16px;
+  font-size: 14.5px;
 }
 
 .links {
@@ -175,7 +175,7 @@ h2 {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
   color: #151a21;
-  font-size: 21px;
+  font-size: 19px;
   line-height: 1.2;
   font-weight: 730;
   letter-spacing: 0;
@@ -192,7 +192,7 @@ h2::before {
 h3 {
   margin: 22px 0 9px;
   color: #252b33;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.35;
   font-weight: 720;
 }
@@ -228,7 +228,7 @@ section > ul li {
 .pub-note {
   margin-top: -4px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .publications {
@@ -248,7 +248,7 @@ section > ul li {
 
 .pub-title {
   color: #111827;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 690;
   line-height: 1.42;
 }
@@ -262,7 +262,7 @@ section > ul li {
 .pub-venue {
   margin-top: 2px;
   color: #374151;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.44;
 }
 
@@ -275,7 +275,7 @@ section > ul li {
   border-radius: 3px;
   background: transparent;
   color: #555;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.35;
   white-space: nowrap;
@@ -299,7 +299,7 @@ section > ul li {
   border-radius: 3px;
   background: transparent;
   color: #555;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
   text-align: center;
@@ -363,7 +363,7 @@ footer {
     background: #fff;
     color: var(--muted);
     font: inherit;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 650;
     cursor: pointer;
   }
@@ -482,16 +482,16 @@ footer {
   .bio h1 {
     align-self: end;
     margin-top: 4px;
-    font-size: 31px;
+    font-size: 28px;
   }
 
   .role {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .affiliation {
     margin-bottom: 0;
-    font-size: 14px;
+    font-size: 13.5px;
   }
 
   .bio p:not(.role):not(.affiliation) {
@@ -507,7 +507,7 @@ footer {
 
   h2 {
     margin-bottom: 14px;
-    font-size: 20px;
+    font-size: 18.5px;
   }
 
 }
@@ -541,22 +541,22 @@ footer {
   }
 
   .bio h1 {
-    font-size: 27px;
+    font-size: 25px;
   }
 
   .role,
   .affiliation {
-    font-size: 13.5px;
+    font-size: 12.5px;
   }
 
   .bio p:not(.role):not(.affiliation),
   section > ul,
   section > ol {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   h2 {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   h3 {
@@ -573,12 +573,12 @@ footer {
   }
 
   .pub-title {
-    font-size: 14.5px;
+    font-size: 13.5px;
   }
 
   .pub-authors,
   .pub-venue {
-    font-size: 13px;
+    font-size: 12.5px;
   }
 
   .badge {
