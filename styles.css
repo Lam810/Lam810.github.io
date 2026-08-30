@@ -231,6 +231,13 @@ section > ul li {
   font-size: 12px;
 }
 
+.section-note {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .pub-summary {
   margin-top: 2px;
   color: var(--muted);
@@ -292,6 +299,29 @@ section > ul li {
 
 .publication-disclosure {
   margin-top: 20px;
+}
+
+.section-disclosure {
+  margin-top: 0;
+}
+
+.section-disclosure summary {
+  margin: 0;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--line);
+  color: #151a21;
+  font-size: 19px;
+  line-height: 1.2;
+  font-weight: 730;
+}
+
+.section-disclosure summary::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--accent);
+  flex: 0 0 auto;
 }
 
 .publications {
@@ -643,6 +673,19 @@ footer {
     grid-row: 1 / span 2;
     align-self: center;
     margin-left: 0;
+  }
+
+  .section-disclosure summary {
+    display: flex;
+    align-items: center;
+  }
+
+  .section-disclosure summary span {
+    margin-left: 2px;
+  }
+
+  .section-disclosure summary::after {
+    margin-left: auto;
   }
 
   ul,
