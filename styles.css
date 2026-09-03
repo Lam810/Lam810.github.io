@@ -470,6 +470,11 @@ a.pub-button:hover {
   margin-top: 9px;
 }
 
+.project-tag--npu {
+  background: var(--accent);
+  color: #fff;
+}
+
 .project-tag {
   padding: 1px 7px;
   border-radius: 3px;

@@ -195,7 +195,9 @@
         <p class="section-note">
           Selected public code includes desensitized engineering prototypes and research systems
           around assistant workflow orchestration, retrieval-augmented generation, speech interfaces,
-          conversational analytics, and multimodal reasoning.
+          conversational analytics, and multimodal reasoning. Projects marked
+          <span class="project-tag project-tag--npu">Ascend NPU</span> run on Huawei Ascend
+          hardware, verified on Ascend 910C rather than only documented as compatible.
         </p>
         <ul class="projects">
           <li class="project-card">
@@ -227,11 +229,22 @@
           </li>
           <li class="project-card">
             <a class="project-title" href="https://github.com/Lam810/NexusFlow">NexusFlow</a>
-            <p class="project-desc">A desensitized visual workflow studio for AI PC and HarmonyOS-style assistant scenarios. Connects intent routing, retrieval, local and cloud model orchestration, tool calls, and inspectable assistant pipelines.</p>
+            <p class="project-desc">A desensitized visual workflow studio for AI PC and HarmonyOS-style assistant scenarios. Connects intent routing, retrieval, local and cloud model orchestration, tool calls, and inspectable assistant pipelines. Documented and verified against a self-hosted vLLM stack on Ascend 910C NPUs.</p>
             <div class="project-tags">
+              <span class="project-tag project-tag--npu">Ascend NPU</span>
               <span class="project-tag">Workflow</span>
               <span class="project-tag">TypeScript</span>
               <span class="project-tag">On-device AI</span>
+            </div>
+          </li>
+          <li class="project-card">
+            <a class="project-title" href="https://github.com/Lam810/visual-document-rag">visual-document-rag</a>
+            <p class="project-desc">A retrieval-augmented pipeline for visually rich documents — layout and formula detection, OCR, then retrieval over the recovered structure. Ported from CUDA to Huawei Ascend NPUs: one resolver decides the backend for every stage, a readiness check reports what each stage will actually run on, and a dated log records what real 910C hardware verified and what it did not.</p>
+            <div class="project-tags">
+              <span class="project-tag project-tag--npu">Ascend NPU</span>
+              <span class="project-tag">RAG</span>
+              <span class="project-tag">Document AI</span>
+              <span class="project-tag">CANN</span>
             </div>
           </li>
           <li class="project-card">
@@ -247,8 +260,9 @@
           <li class="project-card">
             <a class="project-title" href="https://github.com/LXX3123/SoloChart">SoloChart</a>
             <span class="project-note">Collaboration</span>
-            <p class="project-desc">A single-file conversational analytics tool: ask about your data in plain language and get an interactive chart back. Runs against a self-hosted vLLM endpoint, so the page carries no third-party API credential.</p>
+            <p class="project-desc">A single-file conversational analytics tool: ask about your data in plain language and get an interactive chart back. Runs against a self-hosted vLLM endpoint, so the page carries no third-party API credential — including vLLM on Ascend 910C NPUs.</p>
             <div class="project-tags">
+              <span class="project-tag project-tag--npu">Ascend NPU</span>
               <span class="project-tag">Analytics</span>
               <span class="project-tag">vLLM</span>
               <span class="project-tag">Zero-build</span>
