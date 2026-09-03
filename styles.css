@@ -418,16 +418,7 @@ a.pub-button:hover {
 
 .project-card {
   padding: 12px 0 13px;
-  border-top: 1px solid var(--line-soft);
-}
-
-.project-card:first-child {
   border-top: 0;
-  padding-top: 0;
-}
-
-.project-card:hover {
-  border-color: var(--line-soft);
 }
 
 .project-title {
