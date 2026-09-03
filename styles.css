@@ -410,31 +410,29 @@ a.pub-button:hover {
 }
 
 .projects {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  display: block;
   margin: 0;
   padding-left: 0;
   list-style: none;
 }
 
 .project-card {
-  padding: 13px 15px;
-  border: 1px solid var(--line-soft);
-  border-radius: 6px;
-  background: var(--surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 10px 0 11px;
+  border-top: 1px solid var(--line-soft);
 }
 
+.project-card:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
 
 .project-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 14px rgba(22, 32, 48, 0.06);
+  border-color: var(--line-soft);
 }
 
 .project-title {
-  color: #111827;
-  font-size: 14px;
+  color: var(--accent-dark);
+  font-size: 13.5px;
   font-weight: 700;
 }
 
@@ -443,49 +441,53 @@ a.pub-button:hover {
 }
 
 .project-note {
-  display: inline-flex;
+  display: inline;
   align-items: center;
-  margin-left: 7px;
-  padding: 1px 6px;
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
   color: var(--muted);
   font-size: 10.5px;
   font-weight: 500;
-  letter-spacing: 0.01em;
   white-space: nowrap;
   vertical-align: 1px;
 }
 
+.project-note::before {
+  content: "(";
+}
+
+.project-note::after {
+  content: ")";
+}
+
 .project-desc {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
   font-size: 12.5px;
-  line-height: 1.52;
+  line-height: 1.5;
 }
 
 .project-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 9px;
+  gap: 4px 10px;
+  margin-top: 5px;
 }
 
 .project-tag {
-  padding: 1px 7px;
-  border-radius: 3px;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  font-size: 10.5px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 10.25px;
   font-weight: 550;
-  line-height: 1.5;
+  line-height: 1.45;
   white-space: nowrap;
 }
 
-/* 必须排在 .project-tag 之后：同优先级，后者胜 */
 .project-tag--npu {
-  background: var(--accent);
-  color: #fff;
+  color: var(--accent-dark);
 }
 
 strong {
