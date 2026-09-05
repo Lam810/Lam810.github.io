@@ -845,3 +845,16 @@ footer {
     margin-top: 1px;
   }
 }
+
+
+.protected-disclosure:not([data-unlocked="true"]) summary span::after {
+  content: " / locked";
+}
+
+.protected-disclosure.unlock-failed summary {
+  color: #8a2424;
+}
+
+.protected-disclosure.unlock-failed summary::after {
+  color: #8a2424;
+}
