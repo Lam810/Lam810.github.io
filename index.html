@@ -198,12 +198,12 @@
           Ascend 910C hardware, not merely documented as compatible.
         </p>
         <div class="project-controls" aria-label="Filter open-source projects">
-          <button class="project-filter is-active" type="button" data-filter="all">All</button>
-          <button class="project-filter" type="button" data-filter="systems">AI Systems</button>
-          <button class="project-filter" type="button" data-filter="rag">RAG</button>
-          <button class="project-filter" type="button" data-filter="multimodal">Multimodal</button>
-          <button class="project-filter" type="button" data-filter="npu">NPU</button>
-          <button class="project-filter" type="button" data-filter="speech-data">Speech &amp; Data</button>
+          <button class="project-filter is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="project-filter" type="button" data-filter="systems" aria-pressed="false">AI Systems</button>
+          <button class="project-filter" type="button" data-filter="rag" aria-pressed="false">RAG</button>
+          <button class="project-filter" type="button" data-filter="multimodal" aria-pressed="false">Multimodal</button>
+          <button class="project-filter" type="button" data-filter="npu" aria-pressed="false">NPU</button>
+          <button class="project-filter" type="button" data-filter="speech-data" aria-pressed="false">Speech &amp; Data</button>
         </div>
         <ul class="projects" aria-live="polite">
           <li class="project-card" data-project-tags="systems npu assistant workflow">
@@ -420,7 +420,9 @@
       filterButton.addEventListener("click", () => {
         const selected = filterButton.dataset.filter;
         projectFilters.forEach((button) => {
-          button.classList.toggle("is-active", button === filterButton);
+          const isSelected = button === filterButton;
+          button.classList.toggle("is-active", isSelected);
+          button.setAttribute("aria-pressed", String(isSelected));
         });
         projectCards.forEach((card) => {
           const tags = card.dataset.projectTags || "";
@@ -429,6 +431,25 @@
         });
       });
     });
+
+    const navLinks = Array.from(primaryNav.querySelectorAll('a[href^="#"]'));
+    const sections = navLinks
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+
+    if ("IntersectionObserver" in window && sections.length) {
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        navLinks.forEach((link) => {
+          link.classList.toggle("is-active", link.getAttribute("href") === `#${visible.target.id}`);
+        });
+      }, { rootMargin: "-18% 0px -68%", threshold: [0.1, 0.4, 0.7] });
+
+      sections.forEach((section) => observer.observe(section));
+    }
   </script>
   <!-- Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"1f5645da638a49fca6fe2291093a196c"}'></script>
