@@ -409,6 +409,39 @@ a.pub-button:hover {
   opacity: 0.65;
 }
 
+.project-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0 14px;
+}
+
+.project-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 10px;
+  border: 1px solid #d0d7de;
+  border-radius: 999px;
+  background: #f6f8fa;
+  color: #57606a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.project-filter:hover {
+  border-color: #afb8c1;
+  background: #eef2f6;
+}
+
+.project-filter.is-active {
+  border-color: #0969da;
+  background: #ddf4ff;
+  color: #0969da;
+}
+
 .projects {
   display: block;
   margin: 0;
@@ -421,6 +454,17 @@ a.pub-button:hover {
   border-top: 0;
 }
 
+.project-card[hidden] {
+  display: none;
+}
+
+.project-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 7px;
+}
+
 .project-title {
   color: #0969da;
   font-size: 13.5px;
@@ -429,6 +473,11 @@ a.pub-button:hover {
 
 .project-card .project-title:hover {
   color: #0550ae;
+}
+
+.project-meta {
+  color: var(--light-muted);
+  font-size: 11.5px;
 }
 
 .project-note {
@@ -445,8 +494,8 @@ a.pub-button:hover {
 .project-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: 5px;
+  gap: 5px;
+  margin-top: 0;
 }
 
 .project-tag {
@@ -761,5 +810,29 @@ footer {
   .badge {
     margin-top: 4px;
     margin-left: 0;
+  }
+  .project-controls {
+    flex-wrap: nowrap;
+    margin-right: -18px;
+    padding-right: 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .project-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .project-filter {
+    flex: 0 0 auto;
+  }
+
+  .project-head {
+    display: block;
+  }
+
+  .project-meta {
+    display: block;
+    margin-top: 1px;
   }
 }

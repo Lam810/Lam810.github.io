@@ -197,9 +197,20 @@
           <span class="project-tag project-tag--npu">Ascend NPU</span> were verified on
           Ascend 910C hardware, not merely documented as compatible.
         </p>
-        <ul class="projects">
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Lam810/NexusFlow">NexusFlow</a>
+        <div class="project-controls" aria-label="Filter open-source projects">
+          <button class="project-filter is-active" type="button" data-filter="all">All</button>
+          <button class="project-filter" type="button" data-filter="systems">AI Systems</button>
+          <button class="project-filter" type="button" data-filter="rag">RAG</button>
+          <button class="project-filter" type="button" data-filter="multimodal">Multimodal</button>
+          <button class="project-filter" type="button" data-filter="npu">NPU</button>
+          <button class="project-filter" type="button" data-filter="speech-data">Speech &amp; Data</button>
+        </div>
+        <ul class="projects" aria-live="polite">
+          <li class="project-card" data-project-tags="systems npu assistant workflow">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Lam810/NexusFlow">NexusFlow</a>
+              <span class="project-meta">assistant workflow studio</span>
+            </div>
             <p class="project-desc">A visual workflow studio for assistant pipelines — intent routing, retrieval, tool calls and model orchestration — running on self-hosted vLLM on Ascend 910C.</p>
             <div class="project-tags">
               <span class="project-tag project-tag--npu">Ascend NPU</span>
@@ -208,8 +219,11 @@
               <span class="project-tag">On-device AI</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Lam810/visual-document-rag">visual-document-rag</a>
+          <li class="project-card" data-project-tags="rag npu document systems">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Lam810/visual-document-rag">visual-document-rag</a>
+              <span class="project-meta">layout-aware document RAG</span>
+            </div>
             <p class="project-desc">RAG for visually rich documents where layout, formulas and tables survive the pipeline, ported from CUDA to Ascend NPUs and tested on 910C.</p>
             <div class="project-tags">
               <span class="project-tag project-tag--npu">Ascend NPU</span>
@@ -218,8 +232,11 @@
               <span class="project-tag">CANN</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Lam810/AgenticVideoRAG-public">AgenticVideoRAG</a>
+          <li class="project-card" data-project-tags="rag multimodal video systems">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Lam810/AgenticVideoRAG-public">AgenticVideoRAG</a>
+              <span class="project-meta">long-video reasoning</span>
+            </div>
             <p class="project-desc">An agentic framework for long-video question answering that plans missing evidence, retrieves targeted clips, and verifies grounding before answering.</p>
             <div class="project-tags">
               <span class="project-tag">Video QA</span>
@@ -227,8 +244,11 @@
               <span class="project-tag">RAG</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Lam810/factor_mining-rag">Factor-RAG</a>
+          <li class="project-card" data-project-tags="rag document systems">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Lam810/factor_mining-rag">Factor-RAG</a>
+              <span class="project-meta">structure-aware chunking</span>
+            </div>
             <p class="project-desc">Structure-aware Markdown chunking that keeps tables, headers and figure captions intact, with a reproducible benchmark scoring any chunking strategy on structural fidelity.</p>
             <div class="project-tags">
               <span class="project-tag">RAG</span>
@@ -236,8 +256,11 @@
               <span class="project-tag">Python</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/LXX3123/SoloChart">SoloChart</a>
+          <li class="project-card" data-project-tags="systems npu data speech-data">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/LXX3123/SoloChart">SoloChart</a>
+              <span class="project-meta">conversational analytics</span>
+            </div>
             <p class="project-desc">A single-file page that turns a plain-language question into an interactive chart, backed by self-hosted vLLM on Ascend 910C and carrying no API credential.</p>
             <div class="project-tags">
               <span class="project-tag project-tag--npu">Ascend NPU</span>
@@ -246,8 +269,11 @@
               <span class="project-tag">Zero-build</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Vanxun-Hank/cantonese-asr">Cantonese ASR</a>
+          <li class="project-card" data-project-tags="speech-data speech systems">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Vanxun-Hank/cantonese-asr">Cantonese ASR</a>
+              <span class="project-meta">speech recognition</span>
+            </div>
             <p class="project-desc">A reproducible Cantonese speech-recognition system fine-tuned and distilled from Whisper-small, from data preparation through offline packaging.</p>
             <div class="project-tags">
               <span class="project-tag">Speech</span>
@@ -255,8 +281,11 @@
               <span class="project-tag">Low-resource</span>
             </div>
           </li>
-          <li class="project-card">
-            <a class="project-title" href="https://github.com/Lam810/cfps-silicon-respondents">Silicon Respondents on CFPS</a>
+          <li class="project-card" data-project-tags="speech-data data social-science">
+            <div class="project-head">
+              <a class="project-title" href="https://github.com/Lam810/cfps-silicon-respondents">Silicon Respondents on CFPS</a>
+              <span class="project-meta">survey simulation</span>
+            </div>
             <p class="project-desc">Fine-tunes language models against real CFPS response distributions so generated survey answers match a population's option proportions, not just its modal answer.</p>
             <div class="project-tags">
               <span class="project-tag">LoRA</span>
@@ -383,6 +412,22 @@
         navToggle.setAttribute("aria-expanded", "false");
         primaryNav.classList.remove("is-open");
       }
+    });
+    const projectFilters = document.querySelectorAll(".project-filter");
+    const projectCards = document.querySelectorAll(".project-card");
+
+    projectFilters.forEach((filterButton) => {
+      filterButton.addEventListener("click", () => {
+        const selected = filterButton.dataset.filter;
+        projectFilters.forEach((button) => {
+          button.classList.toggle("is-active", button === filterButton);
+        });
+        projectCards.forEach((card) => {
+          const tags = card.dataset.projectTags || "";
+          const shouldShow = selected === "all" || tags.split(" ").includes(selected);
+          card.hidden = !shouldShow;
+        });
+      });
     });
   </script>
   <!-- Cloudflare Web Analytics -->
