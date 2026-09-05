@@ -449,28 +449,17 @@ a.pub-button:hover {
 
 .projects {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
   margin: 0;
   padding-left: 0;
   list-style: none;
 }
 
 .project-card {
-  min-height: 132px;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.03);
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  padding: 0;
 }
 
-.project-card:hover {
-  border-color: rgba(9, 105, 218, 0.34);
-  background: #fff;
-  transform: translateY(-1px);
-}
 .project-card[hidden] {
   display: none;
 }
@@ -486,7 +475,7 @@ a.pub-button:hover {
 .project-title {
   color: #0969da;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .project-card .project-title:hover {
@@ -495,7 +484,7 @@ a.pub-button:hover {
 
 .project-meta {
   color: var(--light-muted);
-  font-size: 11.5px;
+  font-size: 11.25px;
 }
 
 .project-note {
@@ -503,10 +492,11 @@ a.pub-button:hover {
 }
 
 .project-desc {
-  margin: 4px 0 6px;
+  margin: 3px 0 5px;
+  max-width: 900px;
   color: var(--muted);
   font-size: 12.5px;
-  line-height: 1.5;
+  line-height: 1.46;
 }
 
 .project-tags {
@@ -723,14 +713,6 @@ footer {
     font-size: 18px;
   }
 
-  .projects {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-
-  .project-card {
-    min-height: 0;
-  }
 }
 
 @media (max-width: 520px) {
