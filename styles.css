@@ -858,3 +858,131 @@ footer {
 .protected-disclosure.unlock-failed summary::after {
   color: #8a2424;
 }
+
+
+/* Academic refresh: compact, white, index-oriented homepage layout. */
+body {
+  background: #fff;
+  line-height: 1.52;
+}
+
+.page {
+  max-width: 1000px;
+}
+
+.topbar {
+  margin-bottom: 28px;
+  box-shadow: none;
+}
+
+.profile {
+  margin-bottom: 24px;
+  padding-bottom: 28px;
+}
+
+section {
+  margin: 28px 0;
+}
+
+.news-section {
+  margin-top: 8px;
+}
+
+.news-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 0;
+  color: #2d343d;
+  font-size: 13px;
+  list-style: none;
+}
+
+.news-list li {
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+
+.news-date {
+  color: var(--light-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.publications li {
+  margin-bottom: 12px;
+}
+
+.pub-title {
+  font-size: 13.8px;
+  font-weight: 680;
+}
+
+.pub-authors,
+.pub-venue {
+  font-size: 12.6px;
+  line-height: 1.42;
+}
+
+.pub-actions {
+  margin-top: 5px;
+}
+
+.pub-button,
+.badge {
+  border-color: #d0d7de;
+  background: #f6f8fa;
+  color: #57606a;
+}
+
+.projects {
+  gap: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.project-card {
+  padding: 10px 0 11px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.project-card:last-child {
+  border-bottom: 0;
+}
+
+.project-title {
+  font-size: 13.2px;
+}
+
+.project-desc {
+  margin: 3px 0 5px;
+  color: #57606a;
+  font-size: 12.2px;
+  line-height: 1.44;
+}
+
+.project-tag {
+  min-height: 17px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f6f8fa;
+  font-size: 10.2px;
+  line-height: 16px;
+}
+
+@media (max-width: 520px) {
+  .news-list li {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .news-date {
+    font-size: 11px;
+  }
+
+  .project-card {
+    padding: 11px 0;
+  }
+}
