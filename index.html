@@ -78,7 +78,6 @@
         <h2>News</h2>
         <ul class="news-list">
           <li><span class="news-date">2026</span><span>Became a Ph.D. Candidate in Data Science and Analytics at HKUST(GZ).</span></li>
-          <li><span class="news-date">2026</span><span>ReCam-VL is under review at AAAI 2027.</span></li>
           <li><span class="news-date">2026</span><span>Released <a href="https://github.com/Lam810/NexusFlow">NexusFlow</a>, a visual workflow studio for assistant pipelines on Ascend NPU.</span></li>
           <li><span class="news-date">Spring 2026</span><span>Served as Teaching Assistant for DSAA6000Q Large Language Models: Theory and Practice.</span></li>
         </ul>
@@ -143,13 +142,6 @@
             <div class="pub-actions"><a class="pub-button disabled" >Paper</a><span class="pub-button disabled">Code</span></div>
           </li>
           <li>
-            <div class="pub-title">ReCam-VL: Reversal-Aware VLMs for Camera Motion Understanding</div>
-            <div class="pub-summary">Tests whether VLMs understand camera-motion direction by evaluating paired forward and reversed videos under a reversal-closed motion taxonomy.</div>
-            <div class="pub-authors">Zeteng Lin, Xihui Wu, Hao Li, Yujun Cai, and Jing Tang.</div>
-            <div class="pub-venue">Under review at AAAI 2027. <span class="badge">Under Review</span></div>
-            <div class="pub-actions"><a class="pub-button disabled">Paper</a><span class="pub-button disabled">Code</span></div>
-          </li>
-          <li>
             <div class="pub-title">MoTIE: Motion Tool-Augmented Inference with Evidence for Camera-Motion Understanding</div>
             <div class="pub-summary">Provides frozen VLMs with explicit optical-flow, frame-difference, drift, scale, and parallax evidence through a structured Motion Blueprint.</div>
             <div class="pub-authors">Zeteng Lin, Xihui Wu, Yujun Cai, and Jing Tang.</div>
@@ -205,7 +197,7 @@
       <section id="open-source">
         <h2>Open Source</h2>
         <p class="section-note">
-          Desensitized engineering prototypes and research systems. Projects marked
+          Selected desensitized engineering prototypes and research systems. Projects marked
           <span class="project-tag project-tag--npu">Ascend NPU</span> were verified on
           Ascend 910C hardware, not merely documented as compatible.
         </p>
@@ -215,7 +207,6 @@
           <button class="project-filter" type="button" data-filter="rag" aria-pressed="false">RAG</button>
           <button class="project-filter" type="button" data-filter="multimodal" aria-pressed="false">Multimodal</button>
           <button class="project-filter" type="button" data-filter="npu" aria-pressed="false">NPU</button>
-          <button class="project-filter" type="button" data-filter="speech-data" aria-pressed="false">Speech &amp; Data</button>
         </div>
         <ul class="projects" aria-live="polite">
           <li class="project-card" data-project-tags="systems npu assistant workflow">
@@ -223,7 +214,7 @@
               <a class="project-title" href="https://github.com/Lam810/NexusFlow">NexusFlow</a>
               <span class="project-meta">assistant workflow studio</span>
             </div>
-            <p class="project-desc">A visual workflow studio for assistant pipelines — intent routing, retrieval, tool calls and model orchestration — running on self-hosted vLLM on Ascend 910C.</p>
+            <p class="project-desc">A visual workflow studio for assistant pipelines, including intent routing, retrieval, tool calls, and model orchestration, running on self-hosted vLLM on Ascend 910C.</p>
             <div class="project-tags">
               <span class="project-tag project-tag--npu">Ascend NPU</span>
               <span class="project-tag">Workflow</span>
@@ -266,43 +257,6 @@
               <span class="project-tag">RAG</span>
               <span class="project-tag">Document AI</span>
               <span class="project-tag">Python</span>
-            </div>
-          </li>
-          <li class="project-card" data-project-tags="systems npu data speech-data">
-            <div class="project-head">
-              <a class="project-title" href="https://github.com/LXX3123/SoloChart">SoloChart</a>
-              <span class="project-meta">conversational analytics</span>
-            </div>
-            <p class="project-desc">A single-file page that turns a plain-language question into an interactive chart, backed by self-hosted vLLM on Ascend 910C and carrying no API credential.</p>
-            <div class="project-tags">
-              <span class="project-tag project-tag--npu">Ascend NPU</span>
-              <span class="project-tag">Analytics</span>
-              <span class="project-tag">vLLM</span>
-              <span class="project-tag">Zero-build</span>
-            </div>
-          </li>
-          <li class="project-card" data-project-tags="speech-data speech systems">
-            <div class="project-head">
-              <a class="project-title" href="https://github.com/Vanxun-Hank/cantonese-asr">Cantonese ASR</a>
-              <span class="project-meta">speech recognition</span>
-            </div>
-            <p class="project-desc">A reproducible Cantonese speech-recognition system fine-tuned and distilled from Whisper-small, from data preparation through offline packaging.</p>
-            <div class="project-tags">
-              <span class="project-tag">Speech</span>
-              <span class="project-tag">Whisper</span>
-              <span class="project-tag">Low-resource</span>
-            </div>
-          </li>
-          <li class="project-card" data-project-tags="speech-data data social-science">
-            <div class="project-head">
-              <a class="project-title" href="https://github.com/Lam810/cfps-silicon-respondents">Silicon Respondents on CFPS</a>
-              <span class="project-meta">survey simulation</span>
-            </div>
-            <p class="project-desc">Fine-tunes language models against real CFPS response distributions so generated survey answers match a population's option proportions, not just its modal answer.</p>
-            <div class="project-tags">
-              <span class="project-tag">LoRA</span>
-              <span class="project-tag">Computational Social Science</span>
-              <span class="project-tag">Qwen</span>
             </div>
           </li>
         </ul>
