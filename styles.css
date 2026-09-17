@@ -952,6 +952,20 @@ section {
   border-bottom: 0;
 }
 
+.project-subitem {
+  margin: 10px 0 0;
+  color: var(--light-muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.project-subitem a {
+  color: #57606a;
+  text-decoration: underline;
+  text-decoration-color: #b6c2cf;
+  text-underline-offset: 2px;
+}
+
 
 .project-title {
   font-size: 13.2px;
