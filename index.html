@@ -230,6 +230,14 @@
 
       </section>
 
+      <section id="site-activity" class="site-activity" aria-labelledby="activity-title">
+        <div class="activity-heading">
+          <h2 id="activity-title">Recent Traffic</h2>
+          <span class="activity-period">Last 7 complete days · UTC</span>
+        </div>
+        <p id="activity-status" class="activity-status" role="status">Loading statistics...</p>
+        <div id="activity-data"></div>
+      </section>
     </main>
 
   </div>
@@ -269,6 +277,7 @@
       sections.forEach((section) => observer.observe(section));
     }
   </script>
+  <script defer src="assets/activity.js"></script>
   <!-- Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"1f5645da638a49fca6fe2291093a196c"}'></script>
   <!-- End Cloudflare Web Analytics -->
