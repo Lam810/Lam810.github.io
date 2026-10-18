@@ -1,7 +1,9 @@
 import importlib.util
+from contextlib import redirect_stdout
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import json
+import io
 import tempfile
 import unittest
 
@@ -17,7 +19,7 @@ class ActivityTests(unittest.TestCase):
 
     def test_scope_is_the_homepage_not_a_zone_or_repository(self):
         query = activity.query_for_day("a"*32, "b"*32, self.now.replace(hour=0))
-        for value in ['siteTag:', 'requestHost: "lam810.github.io"', 'rumPageloadEventsAdaptiveGroups', '2026-10-20T00:00:00+00:00']:
+        for value in ['siteTag:', 'requestHost: "lam810.github.io"', 'rumPageloadEventsAdaptiveGroups', '2026-10-20T00:00:00+00:00', 'dimensions { countryName }', 'limit: 300']:
             self.assertIn(value, query)
 
     def test_invalid_ids_rejected(self):
@@ -34,7 +36,31 @@ class ActivityTests(unittest.TestCase):
 
     def test_valid_empty_day_is_zero(self):
         row = activity.parse_day({"data": {"viewer": {"accounts": [{"daily": []}]}}}, self.now)
-        self.assertEqual(row, {"date": "2026-10-19", "pageviews": 0, "visits": 0})
+        self.assertEqual(row, {"date": "2026-10-19", "pageviews": 0, "visits": 0, "countries": []})
+
+    def test_country_groups_are_added_and_private_fields_discarded(self):
+        rows = [
+            {"count": 4, "sum": {"visits": 2}, "dimensions": {"countryName": "US", "ip": "not-public"}},
+            {"count": 3, "sum": {"visits": 1}, "dimensions": {"countryName": "HK"}},
+            {"count": 2, "sum": {"visits": 1}, "dimensions": {"countryName": ""}},
+            {"count": 1, "sum": {"visits": 1}, "dimensions": {"countryName": "XX"}},
+        ]
+        row = activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
+        self.assertEqual(row["pageviews"], 10)
+        self.assertEqual(row["visits"], 5)
+        self.assertEqual(row["countries"], [{"country": "US", "pageviews": 4},
+            {"country": "HK", "pageviews": 3}, {"country": "ZZ", "pageviews": 3}])
+        self.assertNotIn("not-public", json.dumps(row))
+
+    def test_country_query_limit_is_not_silently_truncated(self):
+        rows = [{"count": 1, "sum": {"visits": 1}, "dimensions": {"countryName": "US"}}] * 300
+        with self.assertRaises(ValueError):
+            activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
+
+    def test_invalid_country_is_not_published(self):
+        rows = [{"count": 1, "sum": {"visits": 1}, "dimensions": {"countryName": "unexpected-private-value"}}]
+        with self.assertRaises(ValueError):
+            activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
 
     def test_bad_counts_rejected(self):
         for value in [None, -1, True, float("nan"), "12"]:
@@ -43,7 +69,8 @@ class ActivityTests(unittest.TestCase):
 
     def test_complete_daily_export_and_no_private_fields(self):
         def fetch(token, account, site, day):
-            return {"date": day.date().isoformat(), "pageviews": 8, "visits": 3}
+            return {"date": day.date().isoformat(), "pageviews": 8, "visits": 3,
+                    "countries": [{"country": "HK", "pageviews": 5}, {"country": "US", "pageviews": 3}]}
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/"activity.json"
             self.assertTrue(activity.export(path, self.env, self.now, fetch))
@@ -52,7 +79,9 @@ class ActivityTests(unittest.TestCase):
             self.assertEqual(data["visits"], 21)
             self.assertEqual(data["daily"][0]["date"], "2026-10-12")
             self.assertEqual(data["daily"][-1]["date"], "2026-10-18")
-            self.assertEqual(set(data), {"schemaVersion", "status", "provider", "host", "timezone", "updatedAt", "pageviews", "visits", "daily"})
+            self.assertEqual(set(data), {"schemaVersion", "status", "provider", "host", "timezone", "updatedAt", "pageviews", "visits", "daily", "countries"})
+            self.assertEqual(data["countries"], [{"country": "HK", "pageviews": 35}, {"country": "US", "pageviews": 21}])
+            self.assertEqual(set(data["daily"][0]), {"date", "pageviews", "visits"})
             for secret in self.env.values():
                 self.assertNotIn(secret, path.read_text())
 
@@ -60,7 +89,8 @@ class ActivityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/"activity.json"
             path.write_text('{"status":"unconfigured"}')
-            self.assertFalse(activity.export(path, {}, self.now))
+            with redirect_stdout(io.StringIO()):
+                self.assertFalse(activity.export(path, {}, self.now))
             self.assertEqual(path.read_text(), '{"status":"unconfigured"}')
 
     def test_partial_configuration_fails(self):
@@ -99,7 +129,8 @@ class ActivityTests(unittest.TestCase):
             return "c"*32
         def fetch(token, account, site, day):
             self.assertEqual(site, "c"*32)
-            return {"date": day.date().isoformat(), "pageviews": 1, "visits": 1}
+            return {"date": day.date().isoformat(), "pageviews": 1, "visits": 1,
+                    "countries": [{"country": "US", "pageviews": 1}]}
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/"activity.json"
             self.assertTrue(activity.export(path, env, self.now, fetch, discover))
@@ -114,6 +145,12 @@ class ActivityTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 activity.export(path, self.env, self.now, fail)
             self.assertEqual(path.read_text(), "previous data")
+
+    def test_inconsistent_country_counts_are_rejected(self):
+        daily = [{"date": (self.now - timedelta(days=offset)).date().isoformat(),
+                  "pageviews": 1, "visits": 1, "countries": []} for offset in range(7, 0, -1)]
+        with self.assertRaises(ValueError):
+            activity.snapshot(self.now, daily)
 
 
 if __name__ == "__main__":

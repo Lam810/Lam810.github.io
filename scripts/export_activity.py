@@ -14,6 +14,7 @@ import urllib.request
 ENDPOINT = "https://api.cloudflare.com/client/v4/graphql"
 HOST = "lam810.github.io"
 ENV_KEYS = ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_SITE_TAG")
+COUNTRY_LIMIT = 300
 
 
 def query_for_day(account, site, day):
@@ -23,9 +24,9 @@ def query_for_day(account, site, day):
     values = [json.dumps(value) for value in (account, site, HOST, day.isoformat(), end.isoformat())]
     account, site, host, start, end = values
     return f"""{{ viewer {{ accounts(filter: {{accountTag: {account}}}) {{
-      daily: rumPageloadEventsAdaptiveGroups(limit: 2, filter: {{
+      daily: rumPageloadEventsAdaptiveGroups(limit: {COUNTRY_LIMIT}, filter: {{
         siteTag: {site}, requestHost: {host}, datetime_geq: {start}, datetime_lt: {end}
-      }}) {{ count sum {{ visits }} }}
+      }}) {{ count sum {{ visits }} dimensions {{ countryName }} }}
     }} }} }}"""
 
 
@@ -109,13 +110,27 @@ def metric(value):
 def parse_day(data, day):
     # GraphQL can return HTTP 200 while reporting authorization or schema errors.
     rows = account_rows(data, "daily")
-    if len(rows) > 1:
-        raise ValueError("Unexpected aggregate groups")
+    if len(rows) >= COUNTRY_LIMIT:
+        raise ValueError("Country query may be truncated; refusing to publish incomplete totals")
     views = visits = 0
-    if rows:
-        views = metric(rows[0].get("count"))
-        visits = metric(rows[0].get("sum", {}).get("visits"))
-    return {"date": day.date().isoformat(), "pageviews": views, "visits": visits}
+    countries = {}
+    for row in rows:
+        country = row.get("dimensions", {}).get("countryName")
+        if country is None or country in ("", "XX", "T1"):
+            country = "ZZ"
+        if not isinstance(country, str) or not re.fullmatch(r"[A-Z]{2}", country):
+            raise ValueError("Unexpected country code in Cloudflare aggregates")
+        pageviews = metric(row.get("count"))
+        views += pageviews
+        visits += metric(row.get("sum", {}).get("visits"))
+        countries[country] = countries.get(country, 0) + pageviews
+    return {"date": day.date().isoformat(), "pageviews": views, "visits": visits,
+            "countries": country_rows(countries)}
+
+
+def country_rows(counts):
+    return [{"country": code, "pageviews": value} for code, value in
+            sorted(counts.items(), key=lambda item: (-item[1], item[0])) if value > 0]
 
 
 def snapshot(now, daily):
@@ -125,14 +140,27 @@ def snapshot(now, daily):
     expected = [(end - timedelta(days=offset)).date().isoformat() for offset in range(7, 0, -1)]
     if [item["date"] for item in daily] != expected:
         raise ValueError("Daily data are not contiguous or include an incomplete day")
+    countries = {}
     for item in daily:
         metric(item["pageviews"])
         metric(item["visits"])
+        rows = item["countries"]
+        if sum(row["pageviews"] for row in rows) != item["pageviews"]:
+            raise ValueError("Country totals do not match daily page views")
+        seen = set()
+        for row in rows:
+            country = row["country"]
+            if not isinstance(country, str) or not re.fullmatch(r"[A-Z]{2}", country) or country in seen:
+                raise ValueError("Invalid or duplicate country code")
+            seen.add(country)
+            countries[country] = countries.get(country, 0) + metric(row["pageviews"])
     return {
         "schemaVersion": 1, "status": "ready", "provider": "Cloudflare Web Analytics",
         "host": HOST, "timezone": "UTC", "updatedAt": now.astimezone(timezone.utc).isoformat(),
         "pageviews": sum(item["pageviews"] for item in daily),
-        "visits": sum(item["visits"] for item in daily), "daily": daily,
+        "visits": sum(item["visits"] for item in daily),
+        "daily": [{key: item[key] for key in ("date", "pageviews", "visits")} for item in daily],
+        "countries": country_rows(countries),
     }
 
 

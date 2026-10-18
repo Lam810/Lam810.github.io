@@ -16,6 +16,8 @@
     return node;
   };
   const count = (value) => Number.isSafeInteger(value) && value >= 0;
+  const regions = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
+  const share = new Intl.NumberFormat("en", { style: "percent", maximumFractionDigits: 1 });
 
   function validate(data) {
     if (data.schemaVersion !== 1 || data.provider !== "Cloudflare Web Analytics") throw new Error("Invalid source");
@@ -33,7 +35,65 @@
     if (data.daily[6].date >= new Date(updated).toISOString().slice(0, 10)) throw new Error("Incomplete day");
     const sum = (metric) => data.daily.reduce((total, day) => total + day[metric], 0);
     if (!count(data.pageviews) || !count(data.visits) || data.pageviews !== sum("pageviews") || data.visits !== sum("visits")) throw new Error("Invalid totals");
+    if (data.countries !== undefined) {
+      if (!Array.isArray(data.countries) || data.countries.length >= 300) throw new Error("Invalid countries");
+      const codes = new Set();
+      let total = 0;
+      for (const row of data.countries) {
+        if (!/^[A-Z]{2}$/.test(row.country) || codes.has(row.country) || !count(row.pageviews) || !row.pageviews) throw new Error("Invalid country");
+        codes.add(row.country);
+        total += row.pageviews;
+      }
+      if (!count(total) || total !== data.pageviews) throw new Error("Invalid country totals");
+    }
     return true;
+  }
+
+  function countryDistribution(data) {
+    const section = element("div", "activity-countries");
+    const heading = element("h3", "", "Countries / Regions");
+    section.append(heading);
+    if (!data.countries?.length) {
+      section.append(element("p", "activity-country-empty", data.countries ? "No country data for this period." : "Country data will appear after the next update."));
+      return section;
+    }
+    const rows = [...data.countries].sort((a, b) => b.pageviews - a.pageviews || a.country.localeCompare(b.country));
+    const known = rows.filter(row => row.country !== "ZZ");
+    const visible = known.slice(0, 5).map(row => ({
+      label: regions?.of(row.country) || row.country, pageviews: row.pageviews
+    }));
+    if (known.length > 5) visible.push({label: "Other countries", pageviews: known.slice(5).reduce((sum, row) => sum + row.pageviews, 0)});
+    const unknown = rows.find(row => row.country === "ZZ");
+    if (unknown) visible.push({label: "Unknown", pageviews: unknown.pageviews});
+    const table = element("table", "activity-country-table");
+    const caption = element("caption", "", "Page views by country / region · Same 7-day period");
+    table.append(caption);
+    const header = element("tr");
+    for (const text of ["Country / Region", "Page views", "Share"]) {
+      const cell = element("th", "", text);
+      cell.scope = "col";
+      header.append(cell);
+    }
+    const head = element("thead");
+    head.append(header);
+    const body = element("tbody");
+    for (const row of visible) {
+      const item = element("tr");
+      const label = element("th", "", row.label);
+      label.scope = "row";
+      const value = element("td", "", number.format(row.pageviews));
+      const ratio = element("td", "activity-country-share");
+      const bar = element("span", "activity-country-bar");
+      bar.setAttribute("aria-hidden", "true");
+      bar.style.setProperty("--country-share", `${row.pageviews / data.pageviews * 100}%`);
+      ratio.append(bar, element("span", "", share.format(row.pageviews / data.pageviews)));
+      item.append(label, value, ratio);
+      body.append(item);
+    }
+    table.append(head, body);
+    section.append(table);
+    section.append(element("p", "activity-country-note", "Approximate network location; VPNs and proxies may affect attribution."));
+    return section;
   }
 
   function render(data) {
@@ -61,7 +121,7 @@
     }
     const delayed = Date.now() - Date.parse(data.updatedAt) > 36 * 3600000;
     const updated = element("p", "activity-updated", `Cloudflare estimates · Updated ${timestamp.format(new Date(data.updatedAt))} UTC${delayed ? " · Update delayed" : ""}`);
-    container.replaceChildren(totals, chart, updated);
+    container.replaceChildren(totals, chart, countryDistribution(data), updated);
     status.textContent = `${dayLabel.format(new Date(`${data.daily[0].date}T00:00:00Z`))} – ${dayLabel.format(new Date(`${data.daily[6].date}T00:00:00Z`))} · Daily page views`;
   }
 

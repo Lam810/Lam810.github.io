@@ -8,6 +8,13 @@ This is a lightweight static academic homepage hosted with GitHub Pages.
 
 The homepage displays aggregate page views and visits for the last seven complete
 UTC days. Visits are Cloudflare's visit metric, not uniquely identified people.
+Country/region totals use the same seven complete UTC days and page-view metric.
+The homepage lists the top five known countries, groups the remainder as Other
+countries, and labels unavailable geolocation as Unknown. Percentages use all
+page views, including Unknown, as the denominator. VPN/proxy locations may differ
+from the visitor's actual location. Daily totals and country shares are derived
+from the same country-grouped RUM rows to keep the displayed counts consistent.
+The exporter rejects responses that may have hit the country-group query limit.
 The dashboard never exports IP addresses, individual events, referrer URLs, or
 account and site identifiers. No API token is sent to the browser.
 
