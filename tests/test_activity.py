@@ -77,9 +77,10 @@ class ActivityTests(unittest.TestCase):
             data = json.loads(path.read_text())
             self.assertEqual(data["pageviews"], 56)
             self.assertEqual(data["visits"], 21)
-            self.assertEqual(data["daily"][0]["date"], "2026-10-12")
-            self.assertEqual(data["daily"][-1]["date"], "2026-10-18")
-            self.assertEqual(set(data), {"schemaVersion", "status", "provider", "host", "timezone", "updatedAt", "pageviews", "visits", "daily", "countries"})
+            self.assertEqual(data["daily"][0]["date"], "2026-10-13")
+            self.assertEqual(data["daily"][-1]["date"], "2026-10-19")
+            self.assertTrue(data["includesToday"])
+            self.assertEqual(set(data), {"schemaVersion", "status", "provider", "host", "timezone", "updatedAt", "pageviews", "visits", "daily", "countries", "includesToday"})
             self.assertEqual(data["countries"], [{"country": "HK", "pageviews": 35}, {"country": "US", "pageviews": 21}])
             self.assertEqual(set(data["daily"][0]), {"date", "pageviews", "visits"})
             for secret in self.env.values():
@@ -148,7 +149,28 @@ class ActivityTests(unittest.TestCase):
 
     def test_inconsistent_country_counts_are_rejected(self):
         daily = [{"date": (self.now - timedelta(days=offset)).date().isoformat(),
-                  "pageviews": 1, "visits": 1, "countries": []} for offset in range(7, 0, -1)]
+                  "pageviews": 1, "visits": 1, "countries": []} for offset in range(6, -1, -1)]
+        with self.assertRaises(ValueError):
+            activity.snapshot(self.now, daily)
+
+    def test_current_utc_day_is_included(self):
+        requested = []
+        def fetch(token, account, site, day):
+            requested.append(day.date().isoformat())
+            views = 2 if day.date() == self.now.date() else 0
+            return {"date": day.date().isoformat(), "pageviews": views, "visits": views,
+                    "countries": [{"country": "HK", "pageviews": views}] if views else []}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            activity.export(path, self.env, self.now, fetch)
+            data = json.loads(path.read_text())
+            self.assertEqual(data["daily"][-1]["pageviews"], 2)
+            self.assertEqual(data["pageviews"], 2)
+            self.assertEqual(requested, [f"2026-10-{day:02d}" for day in range(13, 20)])
+
+    def test_future_date_is_rejected(self):
+        daily = [{"date": (self.now - timedelta(days=offset)).date().isoformat(),
+                  "pageviews": 0, "visits": 0, "countries": []} for offset in range(5, -2, -1)]
         with self.assertRaises(ValueError):
             activity.snapshot(self.now, daily)
 

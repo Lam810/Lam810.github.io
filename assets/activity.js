@@ -32,7 +32,9 @@
       if (!Number.isFinite(value) || new Date(value).toISOString().slice(0, 10) !== day.date) throw new Error("Invalid date");
       if (index && value - Date.parse(`${data.daily[index - 1].date}T00:00:00Z`) !== 86400000) throw new Error("Missing day");
     });
-    if (data.daily[6].date >= new Date(updated).toISOString().slice(0, 10)) throw new Error("Incomplete day");
+    const lastDay = Date.parse(`${data.daily[6].date}T00:00:00Z`);
+    const today = new Date(updated).setUTCHours(0, 0, 0, 0);
+    if (lastDay !== today - (data.includesToday === true ? 0 : 86400000)) throw new Error("Invalid date range");
     const sum = (metric) => data.daily.reduce((total, day) => total + day[metric], 0);
     if (!count(data.pageviews) || !count(data.visits) || data.pageviews !== sum("pageviews") || data.visits !== sum("visits")) throw new Error("Invalid totals");
     if (data.countries !== undefined) {
@@ -109,7 +111,8 @@
     for (const day of data.daily) {
       const label = dayLabel.format(new Date(`${day.date}T00:00:00Z`));
       const item = element("li");
-      item.title = `${day.date}: ${number.format(day.pageviews)} page views, ${number.format(day.visits)} visits`;
+      const partial = data.includesToday === true && day === data.daily[6];
+      item.title = `${day.date}: ${number.format(day.pageviews)} page views, ${number.format(day.visits)} visits${partial ? " (partial day)" : ""}`;
       item.setAttribute("aria-label", item.title);
       const track = element("div", "activity-track");
       track.setAttribute("aria-hidden", "true");
@@ -120,8 +123,10 @@
       chart.append(item);
     }
     const delayed = Date.now() - Date.parse(data.updatedAt) > 36 * 3600000;
-    const updated = element("p", "activity-updated", `Cloudflare estimates · Updated ${timestamp.format(new Date(data.updatedAt))} UTC${delayed ? " · Update delayed" : ""}`);
+    const updated = element("p", "activity-updated", `Cloudflare estimates · Updated ${timestamp.format(new Date(data.updatedAt))} UTC${data.includesToday ? " · Today partial" : ""}${delayed ? " · Update delayed" : ""}`);
     container.replaceChildren(totals, chart, countryDistribution(data), updated);
+    const period = document.querySelector(".activity-period");
+    if (period) period.textContent = data.includesToday ? "Last 7 days · Including today · UTC" : "Last 7 complete days · UTC";
     status.textContent = `${dayLabel.format(new Date(`${data.daily[0].date}T00:00:00Z`))} – ${dayLabel.format(new Date(`${data.daily[6].date}T00:00:00Z`))} · Daily page views`;
   }
 

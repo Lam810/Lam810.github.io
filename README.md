@@ -6,9 +6,9 @@ This is a lightweight static academic homepage hosted with GitHub Pages.
 
 ## Recent traffic
 
-The homepage displays aggregate page views and visits for the last seven complete
-UTC days. Visits are Cloudflare's visit metric, not uniquely identified people.
-Country/region totals use the same seven complete UTC days and page-view metric.
+The homepage displays aggregate page views and visits for seven UTC dates,
+including the current partial day. Visits are Cloudflare's visit metric, not
+uniquely identified people. Country/region totals use the same dates and page-view metric.
 The homepage lists the top five known countries, groups the remainder as Other
 countries, and labels unavailable geolocation as Unknown. Percentages use all
 page views, including Unknown, as the denominator. VPN/proxy locations may differ
@@ -30,7 +30,10 @@ Configure these repository Actions secrets:
   this secret explicitly. It is not necessarily the JavaScript beacon token.
 
 Use GitHub Actions as the repository's Pages publishing source. The Pages
-workflow refreshes aggregate statistics every six hours and on manual dispatch.
+workflow refreshes aggregate statistics hourly and on manual dispatch. This is a
+scheduled snapshot, not a live counter: Cloudflare ingestion, Actions scheduling,
+and Pages deployment may delay a new visit appearing. Browser blockers or network
+failures can prevent the analytics beacon from reporting a visit.
 It stages only the website files, not tests or export scripts.
 Missing credentials show a connection-pending state rather than fabricated data.
 An API failure stops the deployment so the previous published snapshot remains

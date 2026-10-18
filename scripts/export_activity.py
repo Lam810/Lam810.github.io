@@ -135,11 +135,11 @@ def country_rows(counts):
 
 def snapshot(now, daily):
     if len(daily) != 7:
-        raise ValueError("Exactly seven complete UTC days are required")
-    end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        raise ValueError("Exactly seven UTC dates including today are required")
+    end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     expected = [(end - timedelta(days=offset)).date().isoformat() for offset in range(7, 0, -1)]
     if [item["date"] for item in daily] != expected:
-        raise ValueError("Daily data are not contiguous or include an incomplete day")
+        raise ValueError("Daily data must be contiguous and end on today's UTC date")
     countries = {}
     for item in daily:
         metric(item["pageviews"])
@@ -156,6 +156,7 @@ def snapshot(now, daily):
             countries[country] = countries.get(country, 0) + metric(row["pageviews"])
     return {
         "schemaVersion": 1, "status": "ready", "provider": "Cloudflare Web Analytics",
+        "includesToday": True,
         "host": HOST, "timezone": "UTC", "updatedAt": now.astimezone(timezone.utc).isoformat(),
         "pageviews": sum(item["pageviews"] for item in daily),
         "visits": sum(item["visits"] for item in daily),
@@ -174,7 +175,7 @@ def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discove
     now = now or datetime.now(timezone.utc)
     if not values[2]:
         values[2] = discoverer(values[0], values[1], now)
-    end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     daily = [fetcher(*values, end - timedelta(days=offset)) for offset in range(7, 0, -1)]
     result = snapshot(now, daily)
     # An allowlisted schema prevents raw API responses from reaching the public site.
