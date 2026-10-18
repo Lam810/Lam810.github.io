@@ -123,12 +123,11 @@ nav a.is-active {
 .portrait {
   display: block;
   width: 176px;
-  height: 228px;
+  height: 176px;
   object-fit: cover;
   object-position: center top;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(27, 31, 36, 0.1);
+  border-radius: 50%;
   background: var(--surface);
 }
 
@@ -668,8 +667,7 @@ footer {
 
   .portrait {
     width: 112px;
-    height: 146px;
-    box-shadow: 0 8px 22px rgba(27, 31, 36, 0.08);
+    height: 112px;
   }
 
   .bio {
@@ -739,8 +737,7 @@ footer {
 
   .portrait {
     width: 88px;
-    height: 116px;
-    border-radius: 6px;
+    height: 88px;
   }
 
   .bio h1 {
