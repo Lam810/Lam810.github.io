@@ -67,6 +67,44 @@ class ActivityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             activity.export(Path("unused.json"), {"CLOUDFLARE_API_TOKEN":"test"}, self.now)
 
+    def test_discovery_is_scoped_and_does_not_use_beacon_token(self):
+        queries = []
+        def request(token, query):
+            queries.append(query)
+            rows = [] if len(queries) == 1 else [{"dimensions": {"siteTag": "c"*32}}]
+            return {"data": {"viewer": {"accounts": [{"properties": rows}]}}}
+        self.assertEqual(activity.discover_site_tag("test", "a"*32, self.now, request), "c"*32)
+        self.assertEqual(len(queries), 2)
+        self.assertIn('requestHost: "lam810.github.io"', queries[0])
+        self.assertIn('dimensions { siteTag }', queries[0])
+
+    def test_ambiguous_discovery_fails(self):
+        def request(*args):
+            return {"data": {"viewer": {"accounts": [{"properties": [
+                {"dimensions": {"siteTag": "b"*32}}, {"dimensions": {"siteTag": "c"*32}}
+            ]}]}}}
+        with self.assertRaises(RuntimeError):
+            activity.discover_site_tag("test", "a"*32, self.now, request)
+
+    def test_no_discovery_events_is_not_zero_traffic(self):
+        def request(*args):
+            return {"data": {"viewer": {"accounts": [{"properties": []}]}}}
+        with self.assertRaises(RuntimeError):
+            activity.discover_site_tag("test", "a"*32, self.now, request)
+
+    def test_export_automatically_discovers_missing_site(self):
+        env = {key: value for key, value in self.env.items() if key != "CLOUDFLARE_SITE_TAG"}
+        def discover(token, account, now):
+            self.assertEqual(account, "a"*32)
+            return "c"*32
+        def fetch(token, account, site, day):
+            self.assertEqual(site, "c"*32)
+            return {"date": day.date().isoformat(), "pageviews": 1, "visits": 1}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            self.assertTrue(activity.export(path, env, self.now, fetch, discover))
+            self.assertEqual(json.loads(path.read_text())["pageviews"], 7)
+
     def test_failed_fetch_does_not_overwrite_existing_data(self):
         def fail(*args):
             raise RuntimeError("API unavailable")

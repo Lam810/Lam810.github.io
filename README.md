@@ -16,8 +16,11 @@ Configure these repository Actions secrets:
 - `CLOUDFLARE_API_TOKEN`: an API token with Account / Account Analytics / Read,
   restricted to the relevant account.
 - `CLOUDFLARE_ACCOUNT_ID`: the account's 32-character ID.
-- `CLOUDFLARE_SITE_TAG`: the Web Analytics property's 32-character Site Tag, from
-  its dashboard URL. This is not necessarily the public JavaScript beacon token.
+- `CLOUDFLARE_SITE_TAG` (optional): the Web Analytics property's 32-character Site
+  Tag, from its dashboard URL. If omitted, the exporter identifies the property
+  from recent RUM events scoped to `lam810.github.io`. No other host's traffic is
+  used. If no recent traffic is available or multiple properties match, provide
+  this secret explicitly. It is not necessarily the JavaScript beacon token.
 
 Use GitHub Actions as the repository's Pages publishing source. The Pages
 workflow refreshes aggregate statistics every six hours and on manual dispatch.
