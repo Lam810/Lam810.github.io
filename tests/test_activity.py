@@ -19,7 +19,7 @@ class ActivityTests(unittest.TestCase):
 
     def test_scope_is_the_homepage_not_a_zone_or_repository(self):
         query = activity.query_for_day("a"*32, "b"*32, self.now.replace(hour=0))
-        for value in ['siteTag:', 'requestHost: "lam810.github.io"', 'rumPageloadEventsAdaptiveGroups', '2026-10-20T00:00:00+00:00', 'dimensions { countryName }', 'limit: 300']:
+        for value in ['siteTag:', 'requestHost: "lam810.github.io"', 'rumPageloadEventsAdaptiveGroups', '2026-10-20T00:00:00Z', 'dimensions { date countryName }', 'limit: 300']:
             self.assertIn(value, query)
 
     def test_invalid_ids_rejected(self):
@@ -40,10 +40,10 @@ class ActivityTests(unittest.TestCase):
 
     def test_country_groups_are_added_and_private_fields_discarded(self):
         rows = [
-            {"count": 4, "sum": {"visits": 2}, "dimensions": {"countryName": "US", "ip": "not-public"}},
-            {"count": 3, "sum": {"visits": 1}, "dimensions": {"countryName": "HK"}},
-            {"count": 2, "sum": {"visits": 1}, "dimensions": {"countryName": ""}},
-            {"count": 1, "sum": {"visits": 1}, "dimensions": {"countryName": "XX"}},
+            {"count": 4, "sum": {"visits": 2}, "dimensions": {"date": "2026-10-19", "countryName": "US", "ip": "not-public"}},
+            {"count": 3, "sum": {"visits": 1}, "dimensions": {"date": "2026-10-19", "countryName": "HK"}},
+            {"count": 2, "sum": {"visits": 1}, "dimensions": {"date": "2026-10-19", "countryName": ""}},
+            {"count": 1, "sum": {"visits": 1}, "dimensions": {"date": "2026-10-19", "countryName": "XX"}},
         ]
         row = activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
         self.assertEqual(row["pageviews"], 10)
@@ -58,7 +58,7 @@ class ActivityTests(unittest.TestCase):
             activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
 
     def test_invalid_country_is_not_published(self):
-        rows = [{"count": 1, "sum": {"visits": 1}, "dimensions": {"countryName": "unexpected-private-value"}}]
+        rows = [{"count": 1, "sum": {"visits": 1}, "dimensions": {"date": "2026-10-19", "countryName": "unexpected-private-value"}}]
         with self.assertRaises(ValueError):
             activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
 
@@ -173,6 +173,62 @@ class ActivityTests(unittest.TestCase):
                   "pageviews": 0, "visits": 0, "countries": []} for offset in range(5, -2, -1)]
         with self.assertRaises(ValueError):
             activity.snapshot(self.now, daily)
+
+    def test_api_dates_must_match_the_requested_day(self):
+        for date in ("2026-10-18", "2026-10-20", None):
+            rows = [{"count": 20, "sum": {"visits": 20},
+                     "dimensions": {"date": date, "countryName": "JP"}}]
+            with self.assertRaises(RuntimeError):
+                activity.parse_day({"data": {"viewer": {"accounts": [{"daily": rows}]}}}, self.now)
+
+    def test_utc_serialization_does_not_use_local_timezone(self):
+        value = datetime(2026, 10, 19, 8, tzinfo=timezone(timedelta(hours=8)))
+        self.assertEqual(activity.utc_timestamp(value), "2026-10-19T00:00:00Z")
+        with self.assertRaises(ValueError):
+            activity.utc_timestamp(datetime(2026, 10, 19))
+
+    def previous_with_yesterday_views(self):
+        daily = [{"date": (self.now - timedelta(days=offset)).date().isoformat(),
+                  "pageviews": 8 if offset == 1 else 0,
+                  "visits": 8 if offset == 1 else 0,
+                  "countries": [{"country": "JP", "pageviews": 8}] if offset == 1 else []}
+                 for offset in range(7, 0, -1)]
+        return activity.snapshot(self.now - timedelta(days=1), daily)
+
+    def test_temporary_historical_zero_is_rechecked_not_published(self):
+        previous = self.previous_with_yesterday_views()
+        calls = []
+        def fetch(token, account, site, day):
+            date = day.date().isoformat()
+            calls.append(date)
+            views = 8 if date == "2026-10-18" and calls.count(date) > 1 else 0
+            return {"date": date, "pageviews": views, "visits": views,
+                    "countries": [{"country": "JP", "pageviews": views}] if views else []}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            activity.export(path, self.env, self.now, fetch, previous=previous)
+            result = json.loads(path.read_text())
+            self.assertEqual(calls.count("2026-10-18"), 2)
+            self.assertEqual(result["daily"][-2]["pageviews"], 8)
+            self.assertEqual(result["pageviews"], 8)
+
+    def test_repeated_historical_zero_preserves_previous_snapshot(self):
+        previous = self.previous_with_yesterday_views()
+        def fetch(token, account, site, day):
+            return {"date": day.date().isoformat(), "pageviews": 0, "visits": 0, "countries": []}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            path.write_text(json.dumps(previous))
+            before = path.read_text()
+            with self.assertRaisesRegex(RuntimeError, "Historical analytics unexpectedly became zero"):
+                activity.export(path, self.env, self.now, fetch, previous=previous)
+            self.assertEqual(path.read_text(), before)
+
+    def test_malformed_previous_snapshot_is_not_accepted(self):
+        previous = self.previous_with_yesterday_views()
+        previous["pageviews"] += 1
+        with self.assertRaises(ValueError):
+            activity.previous_daily(previous)
 
 
 if __name__ == "__main__":

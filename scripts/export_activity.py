@@ -15,18 +15,25 @@ ENDPOINT = "https://api.cloudflare.com/client/v4/graphql"
 HOST = "lam810.github.io"
 ENV_KEYS = ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_SITE_TAG")
 COUNTRY_LIMIT = 300
+PUBLISHED_SNAPSHOT = f"https://{HOST}/assets/activity.json"
+
+
+def utc_timestamp(value):
+    if value.tzinfo is None:
+        raise ValueError("Analytics timestamps must be timezone-aware")
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def query_for_day(account, site, day):
     if not all(re.fullmatch(r"[0-9a-fA-F]{32}", value) for value in (account, site)):
         raise ValueError("Account ID and Web Analytics Site Tag must each contain 32 hexadecimal characters")
     end = day + timedelta(days=1)
-    values = [json.dumps(value) for value in (account, site, HOST, day.isoformat(), end.isoformat())]
+    values = [json.dumps(value) for value in (account, site, HOST, utc_timestamp(day), utc_timestamp(end))]
     account, site, host, start, end = values
     return f"""{{ viewer {{ accounts(filter: {{accountTag: {account}}}) {{
       daily: rumPageloadEventsAdaptiveGroups(limit: {COUNTRY_LIMIT}, filter: {{
         siteTag: {site}, requestHost: {host}, datetime_geq: {start}, datetime_lt: {end}
-      }}) {{ count sum {{ visits }} dimensions {{ countryName }} }}
+      }}) {{ count sum {{ visits }} dimensions {{ date countryName }} }}
     }} }} }}"""
 
 
@@ -78,8 +85,8 @@ def discover_site_tag(token, account, now, requester=graphql):
         start = stop - timedelta(days=1)
         query = f"""{{ viewer {{ accounts(filter: {{accountTag: {json.dumps(account)}}}) {{
           properties: rumPageloadEventsAdaptiveGroups(limit: 2, filter: {{
-            requestHost: {json.dumps(HOST)}, datetime_geq: {json.dumps(start.isoformat())},
-            datetime_lt: {json.dumps(stop.isoformat())}
+            requestHost: {json.dumps(HOST)}, datetime_geq: {json.dumps(utc_timestamp(start))},
+            datetime_lt: {json.dumps(utc_timestamp(stop))}
           }}) {{ dimensions {{ siteTag }} }}
         }} }} }}"""
         rows = account_rows(requester(token, query), "properties")
@@ -115,6 +122,8 @@ def parse_day(data, day):
     views = visits = 0
     countries = {}
     for row in rows:
+        if row.get("dimensions", {}).get("date") != day.astimezone(timezone.utc).date().isoformat():
+            raise RuntimeError("Cloudflare returned data for another UTC date; previous published snapshot preserved")
         country = row.get("dimensions", {}).get("countryName")
         if country is None or country in ("", "XX", "T1"):
             country = "ZZ"
@@ -131,6 +140,73 @@ def parse_day(data, day):
 def country_rows(counts):
     return [{"country": code, "pageviews": value} for code, value in
             sorted(counts.items(), key=lambda item: (-item[1], item[0])) if value > 0]
+
+
+def previous_daily(data):
+    if data is None or data.get("status") == "unconfigured":
+        return {}
+    if (data.get("schemaVersion") != 1 or data.get("status") != "ready"
+            or data.get("host") != HOST or data.get("timezone") != "UTC"
+            or data.get("provider") != "Cloudflare Web Analytics"):
+        raise ValueError("Invalid previous analytics snapshot")
+    rows = data.get("daily")
+    if not isinstance(rows, list) or len(rows) != 7:
+        raise ValueError("Invalid previous analytics date range")
+    by_date = {}
+    previous_date = None
+    for row in rows:
+        date = datetime.strptime(row["date"], "%Y-%m-%d").date()
+        if date.isoformat() != row["date"] or (previous_date and date - previous_date != timedelta(days=1)):
+            raise ValueError("Invalid previous analytics dates")
+        previous_date = date
+        metric(row["pageviews"])
+        metric(row["visits"])
+        by_date[row["date"]] = row
+    for key in ("pageviews", "visits"):
+        metric(data.get(key))
+        if sum(row[key] for row in rows) != data[key]:
+            raise ValueError("Invalid previous analytics totals")
+    return by_date
+
+
+def load_previous_snapshot():
+    request = urllib.request.Request(PUBLISHED_SNAPSHOT + f"?check={int(time.time())}", headers={
+        "Cache-Control": "no-cache", "Accept": "application/json",
+        "User-Agent": "homepage-aggregate-analytics/1.0",
+    })
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read(131073)
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return None
+        raise RuntimeError("Could not verify previous published analytics; deployment stopped") from None
+    except urllib.error.URLError:
+        raise RuntimeError("Could not verify previous published analytics; deployment stopped") from None
+    if len(raw) > 131072:
+        raise ValueError("Previous analytics snapshot exceeds size limit")
+    data = json.loads(raw)
+    previous_daily(data)
+    return data
+
+
+def verify_history(daily, previous, now, values, fetcher):
+    old = previous_daily(previous)
+    today = now.astimezone(timezone.utc).date().isoformat()
+    for index, row in enumerate(daily):
+        baseline = old.get(row["date"])
+        if row["date"] >= today or baseline is None:
+            continue
+        erased = [key for key in ("pageviews", "visits") if baseline[key] > 0 and row[key] == 0]
+        if not erased:
+            continue
+        print(f"Rechecking unexpectedly empty historical aggregate for {row['date']}")
+        day = datetime.strptime(row["date"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        checked = fetcher(*values, day)
+        if checked["date"] != row["date"] or any(checked[key] == 0 for key in erased):
+            raise RuntimeError("Historical analytics unexpectedly became zero; previous published snapshot preserved")
+        daily[index] = checked
+    return daily
 
 
 def snapshot(now, daily):
@@ -165,7 +241,7 @@ def snapshot(now, daily):
     }
 
 
-def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discover_site_tag):
+def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discover_site_tag, previous=None):
     values = [env.get(key, "").strip() for key in ENV_KEYS]
     if not all(values[:2]):
         if any(values):
@@ -177,6 +253,7 @@ def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discove
         values[2] = discoverer(values[0], values[1], now)
     end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     daily = [fetcher(*values, end - timedelta(days=offset)) for offset in range(7, 0, -1)]
+    daily = verify_history(daily, previous, now, values, fetcher)
     result = snapshot(now, daily)
     # An allowlisted schema prevents raw API responses from reaching the public site.
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -192,7 +269,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, default=Path("assets/activity.json"))
     args = parser.parse_args()
     try:
-        export(args.output)
+        export(args.output, previous=load_previous_snapshot())
     except (RuntimeError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
         print(f"::error::{error}", file=sys.stderr)
         sys.exit(1)

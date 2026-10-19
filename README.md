@@ -38,6 +38,13 @@ It stages only the website files, not tests or export scripts.
 Missing credentials show a connection-pending state rather than fabricated data.
 An API failure stops the deployment so the previous published snapshot remains
 available; snapshots older than 36 hours are labeled as delayed.
+Each country-grouped response includes its UTC date, which must match the query.
+Before publishing, the exporter reads the last public snapshot. If an earlier
+date with recorded traffic unexpectedly becomes zero, it independently retries
+that date and stops deployment if the zero persists. It never substitutes a
+maximum, adds old counts to new counts, or fabricates a replacement figure.
+Current-day estimates may be revised. A confirmed upstream correction to zero
+requires review before replacing the existing snapshot.
 
 After setting secrets, run **Actions > Publish homepage and aggregate analytics >
 Run workflow**. A successful live export is required to validate permissions and
