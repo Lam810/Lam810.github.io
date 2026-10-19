@@ -13,6 +13,11 @@ class HomepageTests(unittest.TestCase):
         self.assertNotIn("Causal-OPD", self.html)
         self.assertNotIn("VUG-RAG", self.html)
 
+    def test_news_section_and_navigation_are_removed(self):
+        self.assertNotIn('id="news"', self.html)
+        self.assertNotIn('href="#news"', self.html)
+        self.assertNotIn("<h2>News</h2>", self.html)
+
     def test_published_paper_and_preprint_are_retained(self):
         self.assertIn("Unspoken Details:", self.html)
         self.assertIn("<h3>Preprints</h3>", self.html)
