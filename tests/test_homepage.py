@@ -24,6 +24,15 @@ class HomepageTests(unittest.TestCase):
         self.assertTrue(links)
         self.assertTrue(set(links).issubset(targets))
 
+    def test_private_projects_are_not_linked_from_the_homepage(self):
+        for name in ("AgenticVideoRAG-public", "factor_mining-rag",
+                     "PublicAdmin-Supervisor-Skills-CN", "academic-beamer-loop"):
+            self.assertNotIn(f"https://github.com/Lam810/{name}", self.html)
+
+    def test_retained_ascend_projects_are_still_present(self):
+        for name in ("cantonese-llm-lab", "NexusFlow"):
+            self.assertIn(f"https://github.com/Lam810/{name}", self.html)
+
 
 if __name__ == "__main__":
     unittest.main()
