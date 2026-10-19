@@ -37,6 +37,24 @@ def main():
                 "propertyCount": len(properties), "selectedPropertyPresent": site in properties,
                 "returnedDates": [date for date in dates if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date)],
                 "samplingIntervals": sorted({metric(row["avg"]["sampleInterval"]) for row in rows})}))
+    for offset in (1, 0):
+        start = midnight - timedelta(days=offset)
+        end = start + timedelta(days=1)
+        for zulu in (False, True):
+            for date_dimension in (False, True):
+                def timestamp(value):
+                    return value.isoformat().replace("+00:00", "Z") if zulu else value.isoformat()
+                query = f"""{{ viewer {{ accounts(filter: {{accountTag: {json.dumps(account)}}}) {{
+                  observations: rumPageloadEventsAdaptiveGroups(limit: 300, filter: {{
+                    siteTag: {json.dumps(site)}, requestHost: {json.dumps(HOST)},
+                    datetime_geq: {json.dumps(timestamp(start))}, datetime_lt: {json.dumps(timestamp(end))}
+                  }}) {{ count sum {{ visits }} dimensions {{ countryName {"date" if date_dimension else ""} }} }}
+                }} }} }}"""
+                rows = account_rows(graphql(token, query), "observations")
+                print(json.dumps({"comparisonDate": start.date().isoformat(),
+                    "timestampFormat": "Z" if zulu else "offset", "dateDimension": date_dimension,
+                    "pageviews": sum(metric(row["count"]) for row in rows),
+                    "returnedDates": sorted({row["dimensions"]["date"] for row in rows}) if date_dimension else []}))
 
 
 if __name__ == "__main__":
