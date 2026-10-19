@@ -122,11 +122,14 @@
       item.append(element("span", "", number.format(day.pageviews)), track, element("span", "", label));
       chart.append(item);
     }
-    const delayed = Date.now() - Date.parse(data.updatedAt) > 36 * 3600000;
+    const endsToday = data.daily[6].date === new Date().toISOString().slice(0, 10);
+    const delayed = data.refreshDelayed === true || Date.now() - Date.parse(data.updatedAt) > 36 * 3600000;
     const updated = element("p", "activity-updated", `Cloudflare estimates · Updated ${timestamp.format(new Date(data.updatedAt))} UTC${data.includesToday ? " · Today partial" : ""}${delayed ? " · Update delayed" : ""}`);
     container.replaceChildren(totals, chart, countryDistribution(data), updated);
     const period = document.querySelector(".activity-period");
-    if (period) period.textContent = data.includesToday ? "Last 7 days · Including today · UTC" : "Last 7 complete days · UTC";
+    if (period) period.textContent = delayed || (data.includesToday && !endsToday)
+      ? "Last available 7-day snapshot · UTC"
+      : data.includesToday ? "Last 7 days · Including today · UTC" : "Last 7 complete days · UTC";
     status.textContent = `${dayLabel.format(new Date(`${data.daily[0].date}T00:00:00Z`))} – ${dayLabel.format(new Date(`${data.daily[6].date}T00:00:00Z`))} · Daily page views`;
   }
 

@@ -264,12 +264,72 @@ def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discove
     return True
 
 
+def retained_snapshot(previous, now):
+    """Retain validated public aggregates, never arbitrary upstream fields."""
+    if not previous_daily(previous):
+        raise ValueError("No previous ready snapshot")
+    updated = datetime.fromisoformat(previous["updatedAt"].replace("Z", "+00:00"))
+    if updated.tzinfo is None or updated > now + timedelta(hours=1):
+        raise ValueError("Invalid previous timestamp")
+    includes_today = previous.get("includesToday", False)
+    if not isinstance(includes_today, bool):
+        raise ValueError("Invalid previous date range")
+    last = updated.astimezone(timezone.utc).date() - timedelta(days=not includes_today)
+    if previous["daily"][-1]["date"] != last.isoformat():
+        raise ValueError("Invalid previous date range")
+    result = {key: previous[key] for key in (
+        "schemaVersion", "status", "provider", "host", "timezone", "updatedAt", "pageviews", "visits"
+    )}
+    result["includesToday"] = includes_today
+    result["daily"] = [{key: row[key] for key in ("date", "pageviews", "visits")}
+                       for row in previous["daily"]]
+    if "countries" in previous:
+        rows = previous["countries"]
+        if not isinstance(rows, list) or len(rows) >= COUNTRY_LIMIT:
+            raise ValueError("Invalid previous countries")
+        counts = {}
+        for row in rows:
+            code = row["country"]
+            if not isinstance(code, str) or not re.fullmatch(r"[A-Z]{2}", code) or code in counts:
+                raise ValueError("Invalid previous country code")
+            counts[code] = metric(row["pageviews"])
+        if sum(counts.values()) != result["pageviews"]:
+            raise ValueError("Invalid previous country totals")
+        result["countries"] = country_rows(counts)
+    result["refreshDelayed"] = True
+    return result
+
+
+def publish(path, allow_stale=False, loader=load_previous_snapshot, exporter=export, now=None):
+    previous = None
+    try:
+        previous = loader()
+        return exporter(path, previous=previous)
+    except (RuntimeError, ValueError, KeyError, TypeError):
+        if not allow_stale:
+            raise
+        try:
+            result = retained_snapshot(previous, now or datetime.now(timezone.utc))
+        except (ValueError, KeyError, TypeError, AttributeError):
+            result = {"schemaVersion": 1, "status": "unavailable", "provider": "Cloudflare Web Analytics"}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(path)
+        # Avoid logging arbitrary exception text that could contain upstream identifiers.
+        print("::warning::Analytics refresh failed; publishing the homepage with retained statistics "
+              "marked as delayed, or an unavailable state. No replacement counts were invented.")
+        return False
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path("assets/activity.json"))
+    parser.add_argument("--allow-stale", action="store_true",
+                        help="Allow homepage publishing with a validated last-known snapshot if analytics fails")
     args = parser.parse_args()
     try:
-        export(args.output, previous=load_previous_snapshot())
+        publish(args.output, allow_stale=args.allow_stale)
     except (RuntimeError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
         print(f"::error::{error}", file=sys.stderr)
         sys.exit(1)

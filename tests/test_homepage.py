@@ -18,6 +18,12 @@ class HomepageTests(unittest.TestCase):
         self.assertNotIn('href="#news"', self.html)
         self.assertNotIn("<h2>News</h2>", self.html)
 
+    def test_patent_display_is_removed_and_other_content_retained(self):
+        self.assertNotIn("Selected Patents", self.html)
+        self.assertNotIn("Chinese invention patent", self.html)
+        for text in ("MIAIA", "National Computational Social Science Forum", 'id="site-activity"'):
+            self.assertIn(text, self.html)
+
     def test_published_paper_and_preprint_are_retained(self):
         self.assertIn("Unspoken Details:", self.html)
         self.assertIn("<h3>Preprints</h3>", self.html)

@@ -34,7 +34,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_SITE_TAG: ${{ secrets.CLOUDFLARE_SITE_TAG }}
-        run: python3 scripts/export_activity.py
+        run: python3 scripts/export_activity.py --allow-stale
       - name: Stage public website only
         run: |
           mkdir _site

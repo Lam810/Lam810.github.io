@@ -230,6 +230,81 @@ class ActivityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             activity.previous_daily(previous)
 
+    def test_publish_retains_previous_counts_and_timestamp_after_failure(self):
+        previous = self.previous_with_yesterday_views()
+        previous["private"] = "never-publish-this"
+        previous["daily"][0]["private"] = "never-publish-this"
+        def fail(*args, **kwargs):
+            raise RuntimeError("secret upstream error")
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()) as output:
+            path = Path(tmp)/"activity.json"
+            self.assertFalse(activity.publish(path, True, lambda: previous, fail, self.now))
+            result = json.loads(path.read_text())
+            self.assertEqual(result["pageviews"], previous["pageviews"])
+            self.assertEqual(result["updatedAt"], previous["updatedAt"])
+            self.assertEqual(result["daily"][-1]["date"], "2026-10-18")
+            self.assertEqual(result["countries"], previous["countries"])
+            self.assertTrue(result["refreshDelayed"])
+            self.assertNotIn("private", path.read_text())
+            self.assertNotIn("secret upstream error", output.getvalue())
+            self.assertIn("::warning::", output.getvalue())
+
+    def test_publish_without_previous_snapshot_does_not_invent_zero_counts(self):
+        def fail():
+            raise RuntimeError("network unavailable")
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+            path = Path(tmp)/"activity.json"
+            self.assertFalse(activity.publish(path, True, fail, now=self.now))
+            result = json.loads(path.read_text())
+            self.assertEqual(result["status"], "unavailable")
+            self.assertNotIn("pageviews", result)
+            self.assertNotIn("updatedAt", result)
+
+    def test_history_guard_failure_does_not_block_homepage_publishing(self):
+        previous = self.previous_with_yesterday_views()
+        def zero(token, account, site, day):
+            return {"date": day.date().isoformat(), "pageviews": 0, "visits": 0, "countries": []}
+        def refresh(path, previous):
+            return activity.export(path, self.env, self.now, zero, previous=previous)
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+            path = Path(tmp)/"activity.json"
+            activity.publish(path, True, lambda: previous, refresh, self.now)
+            result = json.loads(path.read_text())
+            self.assertTrue(result["refreshDelayed"])
+            self.assertEqual(result["pageviews"], 8)
+            self.assertEqual(result["updatedAt"], previous["updatedAt"])
+
+    def test_publish_rejects_invalid_fallback_country_or_timestamp(self):
+        def fail(*args, **kwargs):
+            raise RuntimeError("upstream failed")
+        for field, value in (("countries", [{"country": "private-value", "pageviews": 8}]),
+                             ("updatedAt", "2099-10-19T00:00:00Z")):
+            previous = self.previous_with_yesterday_views()
+            previous[field] = value
+            with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+                path = Path(tmp)/"activity.json"
+                activity.publish(path, True, lambda: previous, fail, self.now)
+                self.assertEqual(json.loads(path.read_text())["status"], "unavailable")
+
+    def test_strict_publish_still_fails_without_overwriting_data(self):
+        def fail(*args, **kwargs):
+            raise RuntimeError("upstream failed")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            path.write_text("untouched")
+            with self.assertRaises(RuntimeError):
+                activity.publish(path, False, lambda: None, fail)
+            self.assertEqual(path.read_text(), "untouched")
+
+    def test_publish_uses_fresh_export_when_available(self):
+        def fresh(path, **kwargs):
+            path.write_text("fresh export")
+            return True
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"activity.json"
+            self.assertTrue(activity.publish(path, True, lambda: None, fresh))
+            self.assertEqual(path.read_text(), "fresh export")
+
 
 if __name__ == "__main__":
     unittest.main()
