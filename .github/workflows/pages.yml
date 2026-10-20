@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '7,22,37,52 * * * *'
 
 permissions:
   contents: read
@@ -29,6 +29,8 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Test aggregate export
         run: python3 -m unittest discover -s tests -v
+      - name: Test statistics refresh behavior
+        run: node --test tests/activity_ui.cjs
       - name: Fetch aggregate Cloudflare data
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -18,6 +18,8 @@
   const count = (value) => Number.isSafeInteger(value) && value >= 0;
   const regions = typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
   const share = new Intl.NumberFormat("en", { style: "percent", maximumFractionDigits: 1 });
+  let loading = false;
+  let lastData = null;
 
   function validate(data) {
     if (data.schemaVersion !== 1 || data.provider !== "Cloudflare Web Analytics") throw new Error("Invalid source");
@@ -123,9 +125,9 @@
       chart.append(item);
     }
     const endsToday = data.daily[6].date === new Date().toISOString().slice(0, 10);
-    const delayed = data.refreshDelayed === true || Date.now() - Date.parse(data.updatedAt) > 36 * 3600000;
-    const updated = element("p", "activity-updated", `Cloudflare estimates · Updated ${timestamp.format(new Date(data.updatedAt))} UTC${data.includesToday ? " · Today partial" : ""}${delayed ? " · Update delayed" : ""}`);
-    container.replaceChildren(totals, chart, countryDistribution(data), updated);
+    const delayed = data.refreshDelayed === true || Date.now() - Date.parse(data.updatedAt) > 45 * 60000;
+    const updated = element("p", "activity-updated", `Snapshot as of ${timestamp.format(new Date(data.updatedAt))} UTC · Not live${data.includesToday ? " · Partial day" : ""}${delayed ? " · Update delayed" : ""}`);
+    container.replaceChildren(updated, totals, chart, countryDistribution(data));
     const period = document.querySelector(".activity-period");
     if (period) period.textContent = delayed || (data.includesToday && !endsToday)
       ? "Last available 7-day snapshot · UTC"
@@ -134,19 +136,34 @@
   }
 
   async function load() {
+    if (loading) return;
+    loading = true;
     try {
-      const response = await fetch("assets/activity.json", { cache: "no-cache", signal: AbortSignal.timeout(10000) });
+      const response = await fetch(`assets/activity.json?v=${Math.floor(Date.now() / 60000)}`, { cache: "no-store", signal: AbortSignal.timeout(10000) });
       if (!response.ok) throw new Error("Unavailable");
       const data = await response.json();
       if (!validate(data)) {
         status.textContent = "Awaiting analytics connection.";
         return;
       }
+      lastData = data;
       render(data);
     } catch {
-      container.replaceChildren();
-      status.textContent = "Statistics temporarily unavailable.";
+      if (lastData) {
+        render({ ...lastData, refreshDelayed: true });
+      } else {
+        container.replaceChildren();
+        status.textContent = "Statistics temporarily unavailable.";
+      }
+    } finally {
+      loading = false;
     }
   }
   load();
+  setInterval(() => {
+    if (document.visibilityState === "visible") load();
+  }, 5 * 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") load();
+  });
 })();
