@@ -1030,10 +1030,17 @@ section {
   font-variant-numeric: tabular-nums;
 }
 
+.activity-chart-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
 .activity-chart {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(var(--day-count, 30), minmax(20px, 1fr));
+  gap: 4px;
+  min-width: 720px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1041,6 +1048,7 @@ section {
 
 .activity-chart li {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 16px 72px 18px;
   gap: 5px;
   min-width: 0;
@@ -1050,6 +1058,20 @@ section {
   color: var(--muted);
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
+}
+
+.activity-date {
+  width: max-content;
+  justify-self: center;
+  white-space: nowrap;
+}
+
+.activity-chart li:first-child .activity-date {
+  justify-self: start;
+}
+
+.activity-chart li:last-child .activity-date {
+  justify-self: end;
 }
 
 .activity-track {
@@ -1149,7 +1171,7 @@ section {
 
 @media (max-width: 520px) {
   .activity-chart {
-    gap: 8px;
+    gap: 4px;
   }
 }
 

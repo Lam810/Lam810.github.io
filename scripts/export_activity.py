@@ -15,6 +15,7 @@ ENDPOINT = "https://api.cloudflare.com/client/v4/graphql"
 HOST = "lam810.github.io"
 ENV_KEYS = ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_SITE_TAG")
 COUNTRY_LIMIT = 300
+WINDOW_DAYS = 30
 PUBLISHED_SNAPSHOT = f"https://{HOST}/assets/activity.json"
 
 
@@ -80,7 +81,7 @@ def discover_site_tag(token, account, now, requester=graphql):
         raise ValueError("Account ID must contain 32 hexadecimal characters")
     end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     # One-day windows also work with restricted RUM query-range limits.
-    for offset in range(8):
+    for offset in range(WINDOW_DAYS):
         stop = end - timedelta(days=offset)
         start = stop - timedelta(days=1)
         query = f"""{{ viewer {{ accounts(filter: {{accountTag: {json.dumps(account)}}}) {{
@@ -150,7 +151,8 @@ def previous_daily(data):
             or data.get("provider") != "Cloudflare Web Analytics"):
         raise ValueError("Invalid previous analytics snapshot")
     rows = data.get("daily")
-    if not isinstance(rows, list) or len(rows) != 7:
+    # Accept the previous seven-day format during the first 30-day deployment.
+    if not isinstance(rows, list) or len(rows) not in (7, WINDOW_DAYS):
         raise ValueError("Invalid previous analytics date range")
     by_date = {}
     previous_date = None
@@ -210,10 +212,10 @@ def verify_history(daily, previous, now, values, fetcher):
 
 
 def snapshot(now, daily):
-    if len(daily) != 7:
-        raise ValueError("Exactly seven UTC dates including today are required")
+    if len(daily) != WINDOW_DAYS:
+        raise ValueError(f"Exactly {WINDOW_DAYS} UTC dates including today are required")
     end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    expected = [(end - timedelta(days=offset)).date().isoformat() for offset in range(7, 0, -1)]
+    expected = [(end - timedelta(days=offset)).date().isoformat() for offset in range(WINDOW_DAYS, 0, -1)]
     if [item["date"] for item in daily] != expected:
         raise ValueError("Daily data must be contiguous and end on today's UTC date")
     countries = {}
@@ -252,7 +254,7 @@ def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discove
     if not values[2]:
         values[2] = discoverer(values[0], values[1], now)
     end = now.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    daily = [fetcher(*values, end - timedelta(days=offset)) for offset in range(7, 0, -1)]
+    daily = [fetcher(*values, end - timedelta(days=offset)) for offset in range(WINDOW_DAYS, 0, -1)]
     daily = verify_history(daily, previous, now, values, fetcher)
     result = snapshot(now, daily)
     # An allowlisted schema prevents raw API responses from reaching the public site.
@@ -260,7 +262,7 @@ def export(path, env=os.environ, now=None, fetcher=fetch_day, discoverer=discove
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
-    print("Published seven days of aggregate homepage traffic")
+    print(f"Published {WINDOW_DAYS} days of aggregate homepage traffic")
     return True
 
 

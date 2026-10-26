@@ -6,7 +6,7 @@ This is a lightweight static academic homepage hosted with GitHub Pages.
 
 ## Recent traffic
 
-The homepage displays aggregate page views and visits for seven UTC dates,
+The homepage displays aggregate page views and visits for 30 UTC dates,
 including the current partial day. Visits are Cloudflare's visit metric, not
 uniquely identified people. Country/region totals use the same dates and page-view metric.
 The homepage lists the top five known countries, groups the remainder as Other
@@ -15,6 +15,9 @@ page views, including Unknown, as the denominator. VPN/proxy locations may diffe
 from the visitor's actual location. Daily totals and country shares are derived
 from the same country-grouped RUM rows to keep the displayed counts consistent.
 The exporter rejects responses that may have hit the country-group query limit.
+Queries remain split into individual UTC days. During migration, a retained
+seven-day snapshot keeps its original dates and seven-day label until a successful
+30-day refresh; missing historical counts are never padded with invented zeros.
 The dashboard never exports IP addresses, individual events, referrer URLs, or
 account and site identifiers. No API token is sent to the browser.
 

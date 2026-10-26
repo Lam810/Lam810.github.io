@@ -27,14 +27,14 @@
     if (data.status !== "ready" || data.timezone !== "UTC" || data.host !== "lam810.github.io") throw new Error("Invalid scope");
     const updated = Date.parse(data.updatedAt);
     if (!Number.isFinite(updated) || updated > Date.now() + 3600000) throw new Error("Invalid timestamp");
-    if (!Array.isArray(data.daily) || data.daily.length !== 7) throw new Error("Invalid range");
+    if (!Array.isArray(data.daily) || ![7, 30].includes(data.daily.length)) throw new Error("Invalid range");
     data.daily.forEach((day, index) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || !count(day.pageviews) || !count(day.visits)) throw new Error("Invalid day");
       const value = Date.parse(`${day.date}T00:00:00Z`);
       if (!Number.isFinite(value) || new Date(value).toISOString().slice(0, 10) !== day.date) throw new Error("Invalid date");
       if (index && value - Date.parse(`${data.daily[index - 1].date}T00:00:00Z`) !== 86400000) throw new Error("Missing day");
     });
-    const lastDay = Date.parse(`${data.daily[6].date}T00:00:00Z`);
+    const lastDay = Date.parse(`${data.daily.at(-1).date}T00:00:00Z`);
     const today = new Date(updated).setUTCHours(0, 0, 0, 0);
     if (lastDay !== today - (data.includesToday === true ? 0 : 86400000)) throw new Error("Invalid date range");
     const sum = (metric) => data.daily.reduce((total, day) => total + day[metric], 0);
@@ -70,7 +70,7 @@
     const unknown = rows.find(row => row.country === "ZZ");
     if (unknown) visible.push({label: "Unknown", pageviews: unknown.pageviews});
     const table = element("table", "activity-country-table");
-    const caption = element("caption", "", "Page views by country / region · Same 7-day period");
+    const caption = element("caption", "", `Page views by country / region · Same ${data.daily.length}-day period`);
     table.append(caption);
     const header = element("tr");
     for (const text of ["Country / Region", "Page views", "Share"]) {
@@ -109,11 +109,12 @@
     }
     const chart = element("ol", "activity-chart");
     chart.setAttribute("aria-label", "Daily page views, UTC");
+    chart.style.setProperty("--day-count", data.daily.length);
     const max = Math.max(1, ...data.daily.map(day => day.pageviews));
-    for (const day of data.daily) {
+    for (const [index, day] of data.daily.entries()) {
       const label = dayLabel.format(new Date(`${day.date}T00:00:00Z`));
       const item = element("li");
-      const partial = data.includesToday === true && day === data.daily[6];
+      const partial = data.includesToday === true && day === data.daily.at(-1);
       item.title = `${day.date}: ${number.format(day.pageviews)} page views, ${number.format(day.visits)} visits${partial ? " (partial day)" : ""}`;
       item.setAttribute("aria-label", item.title);
       const track = element("div", "activity-track");
@@ -121,18 +122,24 @@
       const bar = element("span", "activity-bar");
       bar.style.setProperty("--bar-height", `${day.pageviews / max * 100}%`);
       track.append(bar);
-      item.append(element("span", "", number.format(day.pageviews)), track, element("span", "", label));
+      const showDate = data.daily.length <= 7 || index % 5 === 0 || index === data.daily.length - 1;
+      item.append(element("span", "", number.format(day.pageviews)), track, element("span", "activity-date", showDate ? label : ""));
       chart.append(item);
     }
-    const endsToday = data.daily[6].date === new Date().toISOString().slice(0, 10);
+    const chartScroll = element("div", "activity-chart-scroll");
+    chartScroll.setAttribute("tabindex", "0");
+    chartScroll.setAttribute("role", "region");
+    chartScroll.setAttribute("aria-label", "Daily traffic chart, scroll horizontally for all dates");
+    chartScroll.append(chart);
+    const endsToday = data.daily.at(-1).date === new Date().toISOString().slice(0, 10);
     const delayed = data.refreshDelayed === true || Date.now() - Date.parse(data.updatedAt) > 45 * 60000;
     const updated = element("p", "activity-updated", `Snapshot as of ${timestamp.format(new Date(data.updatedAt))} UTC · Not live${data.includesToday ? " · Partial day" : ""}${delayed ? " · Update delayed" : ""}`);
-    container.replaceChildren(updated, totals, chart, countryDistribution(data));
+    container.replaceChildren(updated, totals, chartScroll, countryDistribution(data));
     const period = document.querySelector(".activity-period");
     if (period) period.textContent = delayed || (data.includesToday && !endsToday)
-      ? "Last available 7-day snapshot · UTC"
-      : data.includesToday ? "Last 7 days · Including today · UTC" : "Last 7 complete days · UTC";
-    status.textContent = `${dayLabel.format(new Date(`${data.daily[0].date}T00:00:00Z`))} – ${dayLabel.format(new Date(`${data.daily[6].date}T00:00:00Z`))} · Daily page views`;
+      ? `Last available ${data.daily.length}-day snapshot · UTC`
+      : data.includesToday ? `Last ${data.daily.length} days · Including today · UTC` : `Last ${data.daily.length} complete days · UTC`;
+    status.textContent = `${dayLabel.format(new Date(`${data.daily[0].date}T00:00:00Z`))} – ${dayLabel.format(new Date(`${data.daily.at(-1).date}T00:00:00Z`))} · Daily page views`;
   }
 
   async function load() {
