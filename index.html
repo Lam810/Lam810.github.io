@@ -108,7 +108,7 @@
       </section>
 
       <section id="open-source">
-        <h2>Open Source</h2>
+        <h2>Code and Models</h2>
         <h3>Model Training and Inference</h3>
         <ul class="projects">
           <li class="project-card">
@@ -124,6 +124,49 @@
               <span class="project-tag">vLLM-Ascend</span>
               <span class="project-tag">Evaluation</span>
               <a class="project-tag project-tag--link" href="https://huggingface.co/Zeteng/qwen_yue_qa_finetuned_int4/tree/main/v2-qwen3-8b-lora">Weights</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <a class="project-title" href="https://huggingface.co/Zeteng/V-JEPA2.1-Ascend">V-JEPA 2.1: Jetson and Ascend Deployment</a>
+              <span class="project-meta">video encoders and cross-device validation</span>
+            </div>
+            <p class="project-desc">FP16 encoder packaging for Meta's V-JEPA 2.1 on Jetson Orin NX and Ascend 910C, with output checks against a CPU FP32 reference and device-level latency and memory measurements. A deployment artifact of upstream weights, not a newly trained model.</p>
+            <div class="project-tags">
+              <span class="project-tag project-tag--npu">Ascend NPU</span>
+              <span class="project-tag">Jetson</span>
+              <span class="project-tag">FP16</span>
+              <span class="project-tag">Video Features</span>
+              <a class="project-tag project-tag--link" href="https://huggingface.co/Zeteng/V-JEPA2.1-Ascend">Request Access</a>
+            </div>
+          </li>
+        </ul>
+        <h3>Video Understanding</h3>
+        <ul class="projects">
+          <li class="project-card">
+            <div class="project-head">
+              <a class="project-title" href="https://huggingface.co/Zeteng/CameraJev-9B">CameraJev</a>
+              <span class="project-meta">camera-motion recognition</span>
+            </div>
+            <p class="project-desc">LoRA checkpoints for recognizing camera movements such as pan, tilt, dolly, zoom, roll, and tracking. The 4B release adapts VideoJev-4B; the 9B release uses Qwen3.5-9B with model code derived from VideoJev. Weights require approval for non-commercial research.</p>
+            <div class="project-tags">
+              <span class="project-tag">Camera Motion</span>
+              <span class="project-tag">LoRA</span>
+              <a class="project-tag project-tag--link" href="https://huggingface.co/Zeteng/CameraJev-4B">4B Model</a>
+              <a class="project-tag project-tag--link" href="https://huggingface.co/Zeteng/CameraJev-9B">9B Model</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <a class="project-title" href="https://huggingface.co/Zeteng/Qwen3-VL-8B-long-camera-motion">Long-form Camera Motion Understanding</a>
+              <span class="project-meta">temporal video understanding and evaluation</span>
+            </div>
+            <p class="project-desc">Research checkpoints for identifying camera-motion changes, their order, and full-clip timelines in videos of roughly 1-10 minutes. A companion benchmark provides annotations, questions, clip-assembly recipes, and model outputs; no source videos are redistributed. Access is reviewed for non-commercial research.</p>
+            <div class="project-tags">
+              <span class="project-tag">Long Video</span>
+              <span class="project-tag">Temporal Reasoning</span>
+              <a class="project-tag project-tag--link" href="https://huggingface.co/Zeteng/Qwen3-VL-8B-long-camera-motion">Models</a>
+              <a class="project-tag project-tag--link" href="https://huggingface.co/datasets/Zeteng/longform-camera-motion-bench">Benchmark</a>
             </div>
           </li>
         </ul>

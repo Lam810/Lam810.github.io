@@ -44,6 +44,20 @@ class HomepageTests(unittest.TestCase):
         for name in ("cantonese-llm-lab", "NexusFlow"):
             self.assertIn(f"https://github.com/Lam810/{name}", self.html)
 
+    def test_public_video_models_and_benchmark_are_linked(self):
+        self.assertIn("<h2>Code and Models</h2>", self.html)
+        for name in ("V-JEPA2.1-Ascend", "CameraJev-4B", "CameraJev-9B",
+                     "Qwen3-VL-8B-long-camera-motion"):
+            self.assertIn(f'href="https://huggingface.co/Zeteng/{name}"', self.html)
+        self.assertIn('href="https://huggingface.co/datasets/Zeteng/longform-camera-motion-bench"', self.html)
+
+    def test_model_attribution_and_access_limits_are_explicit(self):
+        for text in ("Meta's V-JEPA 2.1", "not a newly trained model",
+                     "adapts VideoJev-4B", "code derived from VideoJev",
+                     "non-commercial research", "Request Access"):
+            self.assertIn(text, self.html)
+        self.assertNotIn("https://huggingface.co/DarkUnitLab/", self.html)
+
 
 if __name__ == "__main__":
     unittest.main()
