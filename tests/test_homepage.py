@@ -16,7 +16,7 @@ class HomepageTests(unittest.TestCase):
         self.assertIn('Zhujie Chu, Yan Li*, Chuanxin Zou, Qi Ge*, and Zeteng Lin.', block)
         self.assertIn('map preparation and cartographic visualization', block)
         for title in ('Fine-Tuning Is Not Geometry: Teaching a Vision\u2013Language Model to See Camera Motion',
-                      'Research on the Evolutionary Characteristics and Configurations of the Coordinated Development of Urbanization and Basic Public Services'):
+                      'Urban Livability Through Synergy: Unraveling the Evolutionary Characteristics and Configurations of the Coordinated Development of Basic Public Services and Urbanization'):
             self.assertIn(title, block)
         for title in ('Active Geometric Verification', 'Change-Aware Motion Memory'):
             self.assertNotIn(title, block)
@@ -26,7 +26,8 @@ class HomepageTests(unittest.TestCase):
         self.assertNotIn('CVPR', block)
         self.assertNotIn('71.14', block)
         self.assertIn('Experiments are ongoing.', block)
-        self.assertIn('in preparation for submission', block)
+        self.assertIn('Manuscript under revision after peer review at <em>Systems</em>', block)
+        self.assertNotIn('in preparation for submission', block)
         self.assertNotIn('TODO', block)
 
     def test_news_section_and_navigation_are_removed(self):
