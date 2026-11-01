@@ -8,20 +8,26 @@ class HomepageTests(unittest.TestCase):
     def setUpClass(cls):
         cls.html = (Path(__file__).parents[1] / "index.html").read_text(encoding="utf-8")
 
-    def test_only_the_two_requested_working_papers_are_shown(self):
+    def test_merged_camera_paper_and_urbanization_paper_are_shown(self):
         self.assertIn('<h3 id="working-papers">Working Papers</h3>', self.html)
         block = re.search(r'<ol class="publications working-papers">(.*?)</ol>', self.html, re.S).group(1)
         self.assertEqual(block.count('<li>'), 2)
-        self.assertEqual(block.count('Zeteng Lin, Yujun Cai, and Jing Tang.'), 2)
-        for title in ('Active Geometric Verification: Learning When and How to Trust Motion Evidence',
-                      'Change-Aware Motion Memory for Long-Video Understanding'):
+        self.assertEqual(block.count('Zeteng Lin, Yujun Cai, and Jing Tang.'), 1)
+        self.assertIn('Zhujie Chu, Yan Li*, Chuanxin Zou, Qi Ge*, and Zeteng Lin.', block)
+        self.assertIn('map preparation and cartographic visualization', block)
+        for title in ('Fine-Tuning Is Not Geometry: Teaching a Vision\u2013Language Model to See Camera Motion',
+                      'Research on the Evolutionary Characteristics and Configurations of the Coordinated Development of Urbanization and Basic Public Services'):
             self.assertIn(title, block)
+        for title in ('Active Geometric Verification', 'Change-Aware Motion Memory'):
+            self.assertNotIn(title, block)
         for old_title in ('Causal-OPD', 'VUG-RAG', 'ReCam-VL', 'IUT-Plug', 'KGPI'):
             self.assertNotIn(old_title, self.html)
         self.assertNotIn('Under Review', block)
         self.assertNotIn('CVPR', block)
         self.assertNotIn('71.14', block)
-        self.assertIn('core methods remain under validation', self.html)
+        self.assertIn('Experiments are ongoing.', block)
+        self.assertIn('in preparation for submission', block)
+        self.assertNotIn('TODO', block)
 
     def test_news_section_and_navigation_are_removed(self):
         self.assertNotIn('id="news"', self.html)
