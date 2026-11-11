@@ -205,9 +205,22 @@ def verify_history(daily, previous, now, values, fetcher):
         print(f"Rechecking unexpectedly empty historical aggregate for {row['date']}")
         day = datetime.strptime(row["date"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
         checked = fetcher(*values, day)
-        if checked["date"] != row["date"] or any(checked[key] == 0 for key in erased):
-            raise RuntimeError("Historical analytics unexpectedly became zero; previous published snapshot preserved")
-        daily[index] = checked
+        if checked["date"] == row["date"] and not any(checked[key] == 0 for key in erased):
+            daily[index] = checked
+            continue
+        # Cloudflare can temporarily omit an older day's aggregate. Keep the
+        # last verified totals so one bad historical bucket does not freeze the
+        # entire rolling window. Country attribution for the reused row is
+        # intentionally marked unknown because the stored snapshot has only
+        # period-level country totals.
+        print(f"Cloudflare returned an incomplete historical aggregate for {row['date']}; reusing verified totals")
+        daily[index] = {
+            "date": row["date"],
+            "pageviews": old[row["date"]]["pageviews"],
+            "visits": old[row["date"]]["visits"],
+            "countries": ([{"country": "ZZ", "pageviews": old[row["date"]]["pageviews"]}]
+                          if old[row["date"]]["pageviews"] else []),
+        }
     return daily
 
 

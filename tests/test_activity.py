@@ -215,17 +215,18 @@ class ActivityTests(unittest.TestCase):
             self.assertEqual(result["daily"][-2]["pageviews"], 8)
             self.assertEqual(result["pageviews"], 8)
 
-    def test_repeated_historical_zero_preserves_previous_snapshot(self):
+    def test_repeated_historical_zero_reuses_previous_counts_and_refreshes(self):
         previous = self.previous_with_yesterday_views()
         def fetch(token, account, site, day):
             return {"date": day.date().isoformat(), "pageviews": 0, "visits": 0, "countries": []}
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/"activity.json"
-            path.write_text(json.dumps(previous))
-            before = path.read_text()
-            with self.assertRaisesRegex(RuntimeError, "Historical analytics unexpectedly became zero"):
-                activity.export(path, self.env, self.now, fetch, previous=previous)
-            self.assertEqual(path.read_text(), before)
+            activity.export(path, self.env, self.now, fetch, previous=previous)
+            result = json.loads(path.read_text())
+            self.assertEqual(result["pageviews"], previous["pageviews"])
+            self.assertEqual(result["visits"], previous["visits"])
+            self.assertEqual(result["updatedAt"], self.now.isoformat())
+            self.assertEqual(result["countries"], [{"country": "ZZ", "pageviews": 8}])
 
     def test_malformed_previous_snapshot_is_not_accepted(self):
         previous = self.previous_with_yesterday_views()
@@ -263,7 +264,7 @@ class ActivityTests(unittest.TestCase):
             self.assertNotIn("pageviews", result)
             self.assertNotIn("updatedAt", result)
 
-    def test_history_guard_failure_does_not_block_homepage_publishing(self):
+    def test_historical_zero_does_not_block_homepage_publishing(self):
         previous = self.previous_with_yesterday_views()
         def zero(token, account, site, day):
             return {"date": day.date().isoformat(), "pageviews": 0, "visits": 0, "countries": []}
@@ -273,9 +274,8 @@ class ActivityTests(unittest.TestCase):
             path = Path(tmp)/"activity.json"
             activity.publish(path, True, lambda: previous, refresh, self.now)
             result = json.loads(path.read_text())
-            self.assertTrue(result["refreshDelayed"])
             self.assertEqual(result["pageviews"], 8)
-            self.assertEqual(result["updatedAt"], previous["updatedAt"])
+            self.assertEqual(result["updatedAt"], self.now.isoformat())
 
     def test_publish_rejects_invalid_fallback_country_or_timestamp(self):
         def fail(*args, **kwargs):
